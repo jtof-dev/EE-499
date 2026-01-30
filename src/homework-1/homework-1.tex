@@ -33,51 +33,29 @@
 
 \section{Introduction}
 Smartrings are a newly emerged wearable category, generally serving as a more minimalist alternative to smart watches. The Oura Ring was one of the first smartrings to come to market with a focus on health tracking, rather than the previous NFC-enabled smartrings~\cite{OuraWiki}. Since Oura’s launch in 2015, they have remained a constant in the smartring space, even as competitors launched their own smartrings. In the past decade, the Oura Ring’s technology has been refined and homogenized across brands: sleep, activity, and general health are recorded by three to five sensors, and that data is interpreted by a companion phone app. The physical specifications have also been refined, with most smartrings being 2.5-5 grams, usually made with titanium, and with multiple days of battery life. Since current smartrings have similar physical specifications, their companies have to find something else to specialize in to help them stand out from the rest.
-
 \section{Market}
 Thanks to Oura’s relative longevity, their specialty is being the most well-rounded smartring. Regardless of their ring’s comparative performance, they provide a consistently reliable product alongside a polished, useful phone app. One Oura competitor, the Samsung Galaxy Ring, differentiates itself by including tight software integration with their phones, most notably through finger tracking~\cite{SamsungWeb}. The Ultrahuman Ring AIR is another contender with added emphasis on how to decrease stress and improve general health through tips on their app~\cite{UltrahumanWeb}. A last competitor is the RingConn Gen 2 Air, which positions itself as a budget alternative that does not compromise on data accuracy~\cite{RingConnWeb}. All four smartring companies market themselves towards the health-conscious consumer who does not want a smartwatch, and each carves out a small niche within that market. This more minimalist market that Oura occupies functions as a middle ground between the more feature-complete smartwatches and simpler, 'dumb' smart wearables that focus on doing one thing well. The Pebble Index 01 is Core Devices' first foray into the smartring market, pulling from thir previous experience in making 'dumb' smartwatches. The Index 01 serves as external memory for the wearer's brain by allowing the user to record voice notes and add to to-do lists~\cite{PebbleWeb}. This smartring similarly is marketed towards people who want a minimalist smartwatch alternative, but focuses more on being simple technology that keeps the user off their phone, rather than distracted. The Index 01 also has a companion app, which interprets the voice memo and creates notes or reminders accordingly. However, this app is designed to primarily work in the background, as opposed to health-focused smartring apps which maximize the health data they can give the user.
 
-\begin{table}[htbp]
-\caption{Comparison of Smart Ring Technical Specifications and Features}
-\label{tab:ring_comparison}
-\centering
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Feature} & \textbf{Oura Ring 4~\cite{OuraWeb}} & \textbf{Ultrahuman Air~\cite{UltrahumanWeb}} & \textbf{RingConn Gen 2~\cite{RingConnWeb}} & \textbf{Galaxy Ring~\cite{SamsungWeb}} \\ \midrule
-\textbf{Sensors} & PPG (R, G, IR), & PPG (R, G, IR), & PPG (IR), & Bio-signal, \\
-                 & Temp, Accel.   & Temp, 6-axis    & Temp, Accel.   & Temp, Accel. \\ \addlinespace
-\textbf{Weight}  & 3.3--5.2 g     & 2.4--3.6 g      & 2.5--4.0 g     & $\sim$2.3--3.0 g \\ \addlinespace
-\textbf{Battery} & 5--8 Days      & 4--6 Days       & Up to 10 Days  & $\sim$1 Day \\ \addlinespace
-\textbf{Connectivity}& BLE        & BLE             & BLE            & BLE \\ \addlinespace
-\textbf{Materials}& Titanium      & Titanium/Epoxy  & Titanium/Epoxy & Titanium \\ \addlinespace
-\textbf{Key Features}& Readiness, & Productivity,  & Vitals,        & Gesture Control, \\
-                 & Resilience     & Longevity       & AI Partner     & Galaxy AI \\ \midrule
-\textbf{Subscription}& Required   & None            & None           & None \\ \bottomrule
-\end{tabular}
-\\[5pt]
-\small{Note:}
-\end{table}
+Reference Table~\ref{tab:combined_ring_comparison} like this!
 
 \begin{table}[htbp]
-\caption{Comprehensive Technical and Functional Comparison of Leading Smart Rings}
+\caption{Technical and Functional Comparison of Leading Smart Rings}
 \label{tab:combined_ring_comparison}
 \centering
-\renewcommand{\arraystretch}{1.5} % 1.2 is 20% more space, 1.5 is 50% more
+\renewcommand{\arraystretch}{1.5}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Feature} & \textbf{Oura Ring 4~\cite{OuraWiki}} & \textbf{Ultrahuman Air~\cite{Ultrahuman}} & \textbf{RingConn Gen 2~\cite{RingConn}} & \textbf{Galaxy Ring~\cite{SamsungRing}} \\ \midrule
-\textbf{Sensors}      & PPG, Temp, Accel. & PPG, Temp, 6-axis & PPG, Temp, Accel. & Bio-signal, Temp, Accel. \\
-\textbf{Weight}       & 3.3--5.2\,g       & 2.4--3.6\,g       & 2.5--4.0\,g       & $\sim$2.3--3.0\,g \\
-\textbf{Battery}      & 5--8 Days         & 4--6 Days         & Up to 10 Days     & $\sim$6--7 Days \\
-\textbf{Charging}     & Desktop Dock      & Desktop Dock      & \textbf{Portable Case} & \textbf{Portable Case} \\ \addlinespace
-\textbf{Durability}   & 100\,m Water Res. & 100\,m Water Res. & IP68 Rated        & 10ATM / IP68 \\
-\textbf{Materials}    & Titanium          & Titanium/Epoxy    & Titanium/Epoxy    & Titanium \\
-\textbf{Ecosystem}    & iOS / Android     & iOS / Android     & iOS / Android     & \textbf{Android Only} \\ \addlinespace
-\textbf{Key Software} & Readiness/Stress  & Metabolic Health  & AI Partner        & Galaxy AI \\
-\textbf{Subscription} & \textbf{Required} & None              & None              & None \\ \bottomrule
+\textbf{Feature} & \textbf{Oura Ring 4~\cite{OuraWeb}} & \textbf{Galaxy Ring~\cite{SamsungWeb}} & \textbf{Ultrahuman Air~\cite{UltrahumanWeb}} & \textbf{RingConn Gen 2~\cite{RingConnWeb}} \\ \midrule
+\textbf{Sensors}      & PPG, Temp, Accel. & Optical Bio-Signal, Temp, Accel. & PPG, Temp, 6-Axis Motion & PPG, Temp, Accel. \\
+\textbf{Weight}       & 3.3--5.2\,g       & 2.3--3.0\,g        & 2.4--3.6\,g       & 2.5--4.0\,g       \\
+\textbf{Battery}      & 5--8 Days         & 6--7 Days          & 4--6 Days         & Up to 10 Days     \\
+\textbf{Charging}     & Desktop Dock      & Portable Case   & Desktop Dock      & Portable Case \\ \addlinespace[6pt]
+\textbf{Durability}   & 100\,m Water Res. & 100\,m (10ATM) / IP68    & 100\,m Water Res. & IP68 Rated        \\
+\textbf{Materials}    & Titanium          & Titanium                 & Titanium/Epoxy    & Titanium/Epoxy    \\ \addlinespace[6pt]
+\textbf{Ecosystem}    & iOS / Android     & Android Only    & iOS / Android     & iOS / Android     \\
+\textbf{Key Software} & Readiness/Stress  & Galaxy AI                & Metabolic Health  & AI Partner        \\
+\textbf{Subscription} & Required & None                     & None              & None              \\ \bottomrule
 \end{tabular}
-\\[5pt]
-\small{Note: All devices utilize Bluetooth Low Energy (BLE) for connectivity and require a proprietary sizing kit for fitting.}
 \end{table}
 
 \section{Sensors}
