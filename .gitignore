@@ -1,3 +1,5 @@
-src/*/*
-!src/*/*.tex
-!src/*/*.bib
+src/homework-1/*
+!src/homework-1/*.tex
+!src/homework-1/*.bib
+
+src/homework-2/.venv
