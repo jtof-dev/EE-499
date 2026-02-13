@@ -197,9 +197,41 @@ def rmanova(datasets):
 
 
 def main():
-    # h_mean_daily = harmonic_mean(dailyCaloriesShort)
-    # print(f"Harmonic Mean: {h_mean_daily}")
-    use_harrmonic = False
+    # 1. daily steps
+    fb_steps_csv = pd.read_csv(
+        "sample-data/actigraph-and-fitbit/fitbit/1_FB_minuteSteps.csv"
+    )
+
+    # fb_steps_cols = [col for col in fb_steps_csv.columns if col.startswith("Steps")]
+    # fb_steps_csv["ActivityHour"] = pd.to_datetime(fb_steps_csv["ActivityHour"])
+    fb_steps_csv["ActivityHour"] = pd.to_datetime(
+        fb_steps_csv["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
+    )
+    fb_steps_csv["Date"] = fb_steps_csv["ActivityHour"].dt.date
+
+    steps_cols = fb_steps_csv.select_dtypes(include=["number"]).columns.tolist()
+    daily_totals = fb_steps_csv.groupby("Date")[steps_cols].sum()
+
+    results = []
+
+    for col in daily_totals.columns:
+        steps = daily_totals[col].tolist()
+
+        steps_mean_arithmetic = calculate_mean(steps, use_harmonic=False)
+        steps_mean_harmonic = calculate_mean(steps, use_harmonic=True)
+
+        # print(f"{col:<15} | {steps_mean_arithmetic:<18.2f} | {steps_mean_harmonic:<15.2f}")
+
+        results.append(
+            {
+                "Participant": col,
+                "Arithmetic Mean": steps_mean_arithmetic,
+                "Harmonic Mean": steps_mean_harmonic,
+            }
+        )
+
+    results_fb_steps = pd.DataFrame(results)
+    print(results_fb_steps.head())
 
 
 if __name__ == "__main__":
