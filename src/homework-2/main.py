@@ -2,32 +2,46 @@ import pandas as pd
 from scipy import stats
 import os
 
-dailyCalories = pd.read_csv("sample-data/multiyear/dailyCalories.csv")
-dailyCaloriesShort = dailyCalories["Calories"].tolist()
 
-
-def harmonic_mean(datasets):
+def calculate_mean(data, use_harmonic=False):
     """
-    calculates the harmonic mean across N datasets
-    takes data input of a list of lists
+    calculates either the harmonic or arithmetic mean for a single dataset or a list of datasets
+    defaults to arithmetic mean, but can be overwritten by passing `use_harmonic=True`
     """
-    results = []
+    # check if data is a list of lists, and not a pandas series or dataframe
+    if isinstance(data, list) and data and isinstance(data[0], list):
+        results = []
+        for d in data:
+            # if there are multiple datasets, recursively call calculate_mean() on each dataset
+            results.append(
+                calculate_mean(d, use_harmonic)
+            )  # pass through `use_hamonic` to preserve the original state
+        return results
 
-    # parsing the inputted datasets
-    for data in datasets:
-        # if there is no data, return 0
-        n = len(data)
+    # from here, data is a single list
+    n = len(data)
+    if n == 0:
+        return 0
+
+    if use_harmonic:
+        # calculate harmonic mean
+        total_reciprocal = 0.0
+        for x in data:
+            if x == 0:
+                # harmonic mean is 0 if any element is 0
+                return 0.0
+            total_reciprocal += 1.0 / x
+
+        if total_reciprocal == 0:
+            return 0.0  # Avoid division by zero
+
+        return n / total_reciprocal
+    else:
+        # arithmetic mean
+        # make sure data is not empty to avoid division by zero
         if n == 0:
-            results.append(0)
-            continue
-
-        # calculating the harmonic mean
-        try:
-            # using equation from homework-2.pdf
-            h_mean = calculate_mean(data, use_harmonic=True)
-            results.append(h_mean)
-        except ZeroDivisionError:
-            results.append("error: divided by zero")
+            return 0
+        return sum(data) / n
 
 
 def std_dev(data):
@@ -67,26 +81,6 @@ def pooled_std_dev(data_pairs):
         return 0
 
     return (numerator / denominator) ** 0.5
-
-
-def calculate_mean(data, use_harmonic=False):
-    """
-    calculates either the harmonic or arithmetic mean
-    defaults to arithmetic mean, since that is used more frequently within this script
-    """
-
-    if use_harmonic:
-        # harmonic mean (returns 0 if there is a zero in the dataset)
-        n = len(data)
-        total_reciprocal = 0.0
-        for x in data:
-            if x == 0:
-                return
-            total_reciprocal += 1.0 / x
-        return n / total_reciprocal
-    else:
-        # arithmetic mean
-        return sum(data) / len(data)
 
 
 def t_test(data1, data2):
@@ -216,30 +210,37 @@ def main():
     ]
 
     daily_steps = []
+    # since I will re-use the fitbit steps data, I will also store it in a dataframe for later
+    fitbit_dfs = []
 
     # iterate through all four daily steps .csv files
     for participant_id, file_path in participant_files:
         if not os.path.exists(file_path):
             print(f"warning: file {file_path} not found, skipping...")
+            fitbit_dfs.append(None)
             continue
 
         try:
-            fb_steps_csv = pd.read_csv(file_path)
+            fb_steps_csv_daily = pd.read_csv(file_path)
+            fitbit_dfs.append(fb_steps_csv_daily)  # store for reuse
         except Exception as e:
             print(f"error reading {file_path}: {e}")
+            fitbit_dfs.append(None)
             continue
 
         # manually set date formatting so pandas can read them correctly
-        fb_steps_csv["ActivityHour"] = pd.to_datetime(
-            fb_steps_csv["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
+        fb_steps_csv_daily["ActivityHour"] = pd.to_datetime(
+            fb_steps_csv_daily["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
         )
-        fb_steps_csv["Date"] = fb_steps_csv["ActivityHour"].dt.date
+        fb_steps_csv_daily["Date"] = fb_steps_csv_daily["ActivityHour"].dt.date
 
         # define the minutes columns
-        steps_cols = [col for col in fb_steps_csv.columns if col.startswith("Steps")]
+        steps_cols = [
+            col for col in fb_steps_csv_daily.columns if col.startswith("Steps")
+        ]
 
         # group by day to calculate daily mean
-        daily_groups = fb_steps_csv.groupby("Date")
+        daily_groups = fb_steps_csv_daily.groupby("Date")
 
         for date, group in daily_groups:
             # add up the total steps for the day
@@ -256,6 +257,120 @@ def main():
 
     # -----------------
     # 2. group variance
+    # variable to store (sigma, n) for each participant
+    participant_stats = []
+
+    for fb_steps_csv_variance in fitbit_dfs:  # reuse the loaded dataframes
+        if fb_steps_csv_variance is None:
+            continue
+        # isolate the minutes steps columns
+        steps_cols = [
+            col for col in fb_steps_csv_variance.columns if col.startswith("Steps")
+        ]
+
+        # flatten values into a 2D grid of steps into one long list
+        all_minute_observations = (
+            fb_steps_csv_variance[steps_cols].values.flatten().tolist()
+        )
+
+        # calculate this participant's (sigma, n)
+        sigma_i = std_dev(all_minute_observations)
+        n_i = len(all_minute_observations)
+
+        participant_stats.append([sigma_i, n_i])
+
+    # use pooled_std_dev() on the collected pairs
+    group_std_dev = pooled_std_dev(participant_stats)
+    if isinstance(group_std_dev, (int, float)):
+        group_variance = group_std_dev**2
+        print(f"group pooled std dev: {group_std_dev}")
+        print(f"group pooled variance: {group_variance}")
+    else:
+        print(f"calculation failed: {group_std_dev}")
+
+    # ------------------------
+    # 3. comparing the devices
+
+    # variables to store fitbit and actigraph data
+    fitbit_data_all = []
+    actigraph_data_all = []
+
+    # reuse the loaded fitbit dataframes
+    for df_fitbit in fitbit_dfs:
+        if df_fitbit is None:
+            continue
+        df_fitbit["ActivityHour"] = pd.to_datetime(df_fitbit["ActivityHour"])
+        steps_cols = [col for col in df_fitbit.columns if col.startswith("Steps")]
+        df_fitbit_melted = df_fitbit.melt(
+            id_vars=["ActivityHour"],
+            value_vars=steps_cols,
+            var_name="Minute",
+            value_name="Steps",
+        )
+        df_fitbit_melted["Minute"] = (
+            df_fitbit_melted["Minute"].str.replace("Steps", "").astype(int)
+        )
+        df_fitbit_melted["datetime"] = df_fitbit_melted.apply(
+            lambda row: row["ActivityHour"] + pd.Timedelta(minutes=row["Minute"]),
+            axis=1,
+        )
+        df_fitbit_final = df_fitbit_melted[["datetime", "Steps"]].set_index("datetime")
+        fitbit_data_all.append(df_fitbit_final)
+
+    # iterate through all four participants in both actigraph
+    for i in range(1, 5):
+        # ActiGraph data
+        for week in range(1, 3):
+            actigraph_file = (
+                f"sample-data/actigraph-and-fitbit/actigraph/{i}_AG_week{week}.csv"
+            )
+            if os.path.exists(actigraph_file):
+                with open(actigraph_file, "r") as f:
+                    header = [next(f) for _ in range(10)]
+
+                start_time_str = (
+                    [line for line in header if "Start Time" in line][0]
+                    .split(" ")[-1]
+                    .strip()
+                )
+                start_date_str = (
+                    [line for line in header if "Start Date" in line][0]
+                    .split(" ")[-1]
+                    .strip()
+                )
+
+                start_datetime = pd.to_datetime(f"{start_date_str} {start_time_str}")
+
+                df_actigraph = pd.read_csv(
+                    actigraph_file,
+                    skiprows=10,
+                    header=None,
+                    usecols=[3],
+                    names=["Steps"],
+                )
+                df_actigraph.index = pd.date_range(
+                    start=start_datetime, periods=len(df_actigraph), freq="min"
+                )
+                actigraph_data_all.append(df_actigraph)
+
+    fitbit_data = pd.concat(fitbit_data_all)
+    actigraph_data = pd.concat(actigraph_data_all)
+
+    merged_data = pd.merge(
+        fitbit_data,
+        actigraph_data,
+        left_index=True,
+        right_index=True,
+        suffixes=("_fitbit", "_actigraph"),
+    )
+
+    t_statistic, p_value = stats.ttest_rel(
+        merged_data["Steps_fitbit"], merged_data["Steps_actigraph"]
+    )
+
+    print(f"T-test between Fitbit and ActiGraph step counts:")
+    print(f"T-statistic: {t_statistic}")
+    print(f"P-value: {p_value}")
 
 
 if __name__ == "__main__":
