@@ -1,5 +1,6 @@
 import pandas as pd
 from scipy import stats
+import os
 
 dailyCalories = pd.read_csv("sample-data/multiyear/dailyCalories.csv")
 dailyCaloriesShort = dailyCalories["Calories"].tolist()
@@ -75,9 +76,14 @@ def calculate_mean(data, use_harmonic=False):
     """
 
     if use_harmonic:
+        # harmonic mean (returns 0 if there is a zero in the dataset)
         n = len(data)
-        # harmonic mean
-        return n / sum(1.0 / x for x in data if x != 0)
+        total_reciprocal = 0.0
+        for x in data:
+            if x == 0:
+                return
+            total_reciprocal += 1.0 / x
+        return n / total_reciprocal
     else:
         # arithmetic mean
         return sum(data) / len(data)
@@ -168,17 +174,20 @@ def rmanova(datasets):
     all_values = [val for sub in datasets for val in sub]
     all_values_mean = calculate_mean(all_values)
 
+    # calculate the sum of squares of subjects
     sum_squares_subjects = 0
     for data in datasets:
         data_mean = calculate_mean(data)
         sum_squares_subjects += num_columns * (data_mean - all_values_mean) ** 2
 
+    # calculate the sum of squares of conditions
     sum_squares_conditions = 0
     for column in range(num_columns):
         column_data = [datasets[row][column] for row in range(num_rows)]
         column_mean = calculate_mean(column_data)
         sum_squares_conditions += num_rows * (column_mean - all_values_mean) ** 2
 
+    # calculate the sum of squares total using the previously calculated values
     sum_squares_total = sum((x - all_values_mean) ** 2 for x in all_values)
     sum_squares_error = (
         sum_squares_total - sum_squares_conditions - sum_squares_subjects
@@ -187,9 +196,11 @@ def rmanova(datasets):
     degrees_freedom_conditions = num_columns - 1
     degrees_freedom_error = (num_columns - 1) * (num_rows - 1)
 
+    # calculate mean squares for f-stat
     mean_squares_conditions = sum_squares_conditions / degrees_freedom_conditions
     mean_squares_error = sum_squares_error / degrees_freedom_error
 
+    # calculate the f-stat and p-value
     f_stat = mean_squares_conditions / mean_squares_error
     p_value = 1 - stats.f.cdf(f_stat, degrees_freedom_conditions, degrees_freedom_error)
 
@@ -198,40 +209,53 @@ def rmanova(datasets):
 
 def main():
     # 1. daily steps
-    fb_steps_csv = pd.read_csv(
-        "sample-data/actigraph-and-fitbit/fitbit/1_FB_minuteSteps.csv"
-    )
+    # read all four participant's .csv's and save file paths and participant id's
+    participant_files = [
+        (f"{i}_FB", f"sample-data/actigraph-and-fitbit/fitbit/{i}_FB_minuteSteps.csv")
+        for i in range(1, 5)
+    ]
 
-    # fb_steps_cols = [col for col in fb_steps_csv.columns if col.startswith("Steps")]
-    # fb_steps_csv["ActivityHour"] = pd.to_datetime(fb_steps_csv["ActivityHour"])
-    fb_steps_csv["ActivityHour"] = pd.to_datetime(
-        fb_steps_csv["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
-    )
-    fb_steps_csv["Date"] = fb_steps_csv["ActivityHour"].dt.date
+    daily_steps = []
 
-    steps_cols = fb_steps_csv.select_dtypes(include=["number"]).columns.tolist()
-    daily_totals = fb_steps_csv.groupby("Date")[steps_cols].sum()
+    # iterate through all four daily steps .csv files
+    for participant_id, file_path in participant_files:
+        if not os.path.exists(file_path):
+            print(f"warning: file {file_path} not found, skipping...")
+            continue
 
-    results = []
+        try:
+            fb_steps_csv = pd.read_csv(file_path)
+        except Exception as e:
+            print(f"error reading {file_path}: {e}")
+            continue
 
-    for col in daily_totals.columns:
-        steps = daily_totals[col].tolist()
-
-        steps_mean_arithmetic = calculate_mean(steps, use_harmonic=False)
-        steps_mean_harmonic = calculate_mean(steps, use_harmonic=True)
-
-        # print(f"{col:<15} | {steps_mean_arithmetic:<18.2f} | {steps_mean_harmonic:<15.2f}")
-
-        results.append(
-            {
-                "Participant": col,
-                "Arithmetic Mean": steps_mean_arithmetic,
-                "Harmonic Mean": steps_mean_harmonic,
-            }
+        # manually set date formatting so pandas can read them correctly
+        fb_steps_csv["ActivityHour"] = pd.to_datetime(
+            fb_steps_csv["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
         )
+        fb_steps_csv["Date"] = fb_steps_csv["ActivityHour"].dt.date
 
-    results_fb_steps = pd.DataFrame(results)
-    print(results_fb_steps.head())
+        # define the minutes columns
+        steps_cols = [col for col in fb_steps_csv.columns if col.startswith("Steps")]
+
+        # group by day to calculate daily mean
+        daily_groups = fb_steps_csv.groupby("Date")
+
+        for date, group in daily_groups:
+            # add up the total steps for the day
+            day_data = group[steps_cols].sum().sum()
+            # print(f"{participant_id}: {date}: {day_data}")
+            daily_steps.append(day_data)
+
+    # take both means
+    daily_steps_arith_mean = calculate_mean(daily_steps, use_harmonic=False)
+    daily_steps_harmonic_mean = calculate_mean(daily_steps, use_harmonic=True)
+
+    print(f"arith: {daily_steps_arith_mean}")
+    print(f"harmonic: {daily_steps_harmonic_mean}")
+
+    # -----------------
+    # 2. group variance
 
 
 if __name__ == "__main__":
