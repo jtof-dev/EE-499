@@ -1,5 +1,5 @@
-import pandas as pd # used to parse .csv's
-from scipy import stats #used for p-value calculations
+import pandas as pd  # used to parse .csv's
+from scipy import stats  # used for p-value calculations
 
 
 def calculate_mean(data, use_harmonic=False):
@@ -28,7 +28,7 @@ def calculate_mean(data, use_harmonic=False):
         total_reciprocal = 0.0
         for x in data:
             if x == 0:
-                return 0.0 # harmonic mean is 0 if any element is 0
+                return 0.0  # harmonic mean is 0 if any element is 0
             total_reciprocal += 1.0 / x
 
         return n / total_reciprocal
@@ -43,7 +43,7 @@ def std_dev(data):
     """
     calculates population standard deviation from a list of data
     """
-    n = len(data) # sanity check on data
+    n = len(data)  # sanity check on data
     if n == 0:
         return 0
 
@@ -57,7 +57,7 @@ def pooled_std_dev(data_pairs):
     """
     calculates the pooled standard deviation from a list of (sigma, n) pairings
     """
-    k = len(data_pairs) # sanity check on data
+    k = len(data_pairs)  # sanity check on data
     if k < 2:
         return "error: need at least two pairings to pool"
 
@@ -65,14 +65,15 @@ def pooled_std_dev(data_pairs):
     numerator = 0
     denominator = 0
 
+    # do numerator and denominator calculations for each (sigma, n)
     for sigma, n in data_pairs:
-        numerator += (n - 1) * (sigma**2) 
+        numerator += (n - 1) * (sigma**2)
         denominator += n - 1
 
     if denominator == 0:
         return 0
 
-    return (numerator / denominator) ** 0.5 # take final square root
+    return (numerator / denominator) ** 0.5  # take final square root
 
 
 def t_test(data1, data2, use_harmonic=False):
@@ -114,7 +115,7 @@ def anova(datasets):
     """
     calculates the anova f-stat and p-value for 3 or more datasets
     """
-    m = len(datasets) # sanity check on datasets
+    m = len(datasets)  # sanity check on datasets
     if m < 3:
         return "error: anova requires at least 3 datasets"
 
@@ -198,35 +199,34 @@ def rmanova(datasets):
 def main():
     # 1. daily steps
     print("-------------\n daily steps\n-------------\n")
-    # read all four participant's .csv's and save file paths and participant id's
 
+    # read all four participant's .csv's and save file paths
     fitbit_participant_files = [
         f"sample-data/actigraph-and-fitbit/fitbit/{i}_FB_minuteSteps.csv"
         for i in range(1, 5)
     ]
 
     daily_steps = []
-    # since I will re-use the fitbit steps data, I will also store it in a dataframe for later
-    fitbit_dfs = []
+    fb_dataframes = [] # since I will re-use the fitbit steps data, I will also store it in a dataframe for later
 
-    # iterate through all four daily steps .csv files
+    # iterate through all four daily steps .csv files and sum up number of steps
     for file_path in fitbit_participant_files:
         try:
             fb_steps_csv_daily = pd.read_csv(file_path)
-            fitbit_dfs.append(fb_steps_csv_daily)  # store for reuse
+            fb_dataframes.append(fb_steps_csv_daily)  # stor steps data for reuse
         except Exception as e:
             print(f"error reading {file_path}: {e}")
-            fitbit_dfs.append(None)
+            fb_dataframes.append(None)
             continue
 
-        # manually set date formatting so pandas can read them correctly
+        # manually set date formatting so pandas can read them correctly (or else it fails to detect the format)
         fb_steps_csv_daily["ActivityHour"] = pd.to_datetime(
             fb_steps_csv_daily["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
         )
         fb_steps_csv_daily["Date"] = fb_steps_csv_daily["ActivityHour"].dt.date
 
         # define the minutes columns
-        steps_cols = [
+        fb_steps_cols = [
             col for col in fb_steps_csv_daily.columns if col.startswith("Steps")
         ]
 
@@ -234,9 +234,7 @@ def main():
         daily_groups = fb_steps_csv_daily.groupby("Date")
 
         for date, group in daily_groups:
-            # add up the total steps for the day
-            day_data = group[steps_cols].sum().sum()
-
+            day_data = group[fb_steps_cols].sum().sum() # add up the total steps for the day
             daily_steps.append(day_data)
 
     # take both means
@@ -253,17 +251,18 @@ def main():
     # variable to store (sigma, n) for each participant
     participant_stats = []
 
-    for fb_steps_csv_variance in fitbit_dfs:  # reuse the loaded dataframes
-        if fb_steps_csv_variance is None:
+    # iterate through all four participants
+    for steps_variance in fb_dataframes: # reuse daily steps dataframes
+        if steps_variance is None:
             continue
         # isolate the minutes steps columns
-        steps_cols = [
-            col for col in fb_steps_csv_variance.columns if col.startswith("Steps")
+        fb_steps_cols = [
+            col for col in steps_variance.columns if col.startswith("Steps")
         ]
 
         # flatten values into a 2D grid of steps into one long list
         all_minute_observations = (
-            fb_steps_csv_variance[steps_cols].values.flatten().tolist()
+            steps_variance[fb_steps_cols].values.flatten().tolist()
         )
 
         # calculate this participant's (sigma, n)
@@ -272,94 +271,107 @@ def main():
 
         participant_stats.append([sigma_i, n_i])
 
-    # use pooled_std_dev() on the collected pairs
+    # calculate pooled_std_dev() on the collected pairs
     group_std_dev = pooled_std_dev(participant_stats)
-    if isinstance(group_std_dev, (int, float)):
-        group_variance = group_std_dev**2
-        print(f"group pooled std dev: {group_std_dev}")
-        print(f"group pooled variance: {group_variance}")
-    else:
-        print(f"calculation failed: {group_std_dev}")
+    group_variance = group_std_dev**2 # variance is pooled standard deviation squared
+
+    print(f"group pooled std dev: {group_std_dev}")
+    print(f"group pooled variance: {group_variance}")
 
     # ------------------------
     # 3. comparing the devices
-    print("\n-----------------------\n comparing the devices\n-----------------------\n")
+    print(
+        "\n-----------------------\n comparing the devices\n-----------------------\n"
+    )
 
     # variables to store fitbit and actigraph data
-    fitbit_data_all = []
-    actigraph_data_all = []
+    fb_data_all = []
+    ag_data_all = []
 
-    # reuse the loaded fitbit dataframes
-    for df_fitbit in fitbit_dfs:
-        if df_fitbit is None:
+    # process fitbit steps data
+    for fb_steps in fb_dataframes: # reuse daily steps dataframes
+        if fb_steps is None:
             continue
-        df_fitbit["ActivityHour"] = pd.to_datetime(df_fitbit["ActivityHour"])
-        steps_cols = [col for col in df_fitbit.columns if col.startswith("Steps")]
-        df_fitbit_melted = df_fitbit.melt(
+        # using pandas to format
+        fb_steps["ActivityHour"] = pd.to_datetime(fb_steps["ActivityHour"]) # process the dates as pandas `datetime`s
+        fb_steps_cols = [col for col in fb_steps.columns if col.startswith("Steps")]
+
+        # combine the 60 steps columns into one steps list
+        fb_steps_melt = fb_steps.melt(
             id_vars=["ActivityHour"],
-            value_vars=steps_cols,
+            value_vars=fb_steps_cols,
             var_name="Minute",
             value_name="Steps",
         )
-        df_fitbit_melted["Minute"] = (
-            df_fitbit_melted["Minute"].str.replace("Steps", "").astype(int)
-        )
-        df_fitbit_melted["datetime"] = df_fitbit_melted.apply(
+
+        fb_steps_melt["Minute"] = (
+            fb_steps_melt["Minute"].str.replace("Steps", "").astype(int)
+        ) # convert the 'Minute' column to integers
+
+        fb_steps_melt["datetime"] = fb_steps_melt.apply(
             lambda row: row["ActivityHour"] + pd.Timedelta(minutes=row["Minute"]),
             axis=1,
-        )
-        df_fitbit_final = df_fitbit_melted[["datetime", "Steps"]].set_index("datetime")
-        fitbit_data_all.append(df_fitbit_final)
+        ) # turn the steps list dates into `datetime` by adding minutes
 
-    # iterate through all four participants in both actigraph
+        # format data to be merged later
+        fb_steps_final = fb_steps_melt[["datetime", "Steps"]].set_index("datetime")
+        fb_data_all.append(fb_steps_final)
+
+    # process actigraph steps data
     for i in range(1, 5):
-        # actigraph data
+        # actigraph data comes in two files per participant, so iterate through both
         for week in range(1, 3):
-            actigraph_file = (
+            ag_file = (
                 f"sample-data/actigraph-and-fitbit/actigraph/{i}_AG_week{week}.csv"
             )
-            with open(actigraph_file, "r") as f:
-                header = [next(f) for _ in range(10)]
 
-            start_time_str = (
+            with open(ag_file, "r") as f:
+                header = [next(f) for _ in range(10)] # remove 10 line header on the actigraph files
+
+            # text match in the header to find start time and date
+            ag_start_time_str = (
                 [line for line in header if "Start Time" in line][0]
                 .split(" ")[-1]
                 .strip()
             )
-            start_date_str = (
+            ag_start_date_str = (
                 [line for line in header if "Start Date" in line][0]
                 .split(" ")[-1]
                 .strip()
             )
 
-            start_datetime = pd.to_datetime(f"{start_date_str} {start_time_str}")
+            ag_start_datetime = pd.to_datetime(f"{ag_start_date_str} {ag_start_time_str}") # combine the time and day into a datetime
 
-            df_actigraph = pd.read_csv(
-                actigraph_file,
+            # use pandas to read the steps data
+            ag_steps = pd.read_csv(
+                ag_file,
                 skiprows=10,
                 header=None,
                 usecols=[3],
                 names=["Steps"],
             )
-            df_actigraph.index = pd.date_range(
-                start=start_datetime, periods=len(df_actigraph), freq="min"
+            
+            # format data to be merged later
+            ag_steps.index = pd.date_range(
+                start=ag_start_datetime, periods=len(ag_steps), freq="min"
             )
-            actigraph_data_all.append(df_actigraph)
+            ag_data_all.append(ag_steps)
 
-    fitbit_data = pd.concat(fitbit_data_all)
-    actigraph_data = pd.concat(actigraph_data_all)
-
+    # use pandas to merge the two datasets into one variable with suffixes differentiating them
+    fb_data_merged = pd.concat(fb_data_all)
+    ag_data_merged = pd.concat(ag_data_all)
     merged_data = pd.merge(
-        fitbit_data,
-        actigraph_data,
+        fb_data_merged,
+        ag_data_merged,
         left_index=True,
         right_index=True,
         suffixes=("_fitbit", "_actigraph"),
     )
 
+    # now run the t-test on the processed data
     t_stat_p3, p_value_p3 = t_test(
         merged_data["Steps_fitbit"].tolist(), merged_data["Steps_actigraph"].tolist()
-    )
+    ) # t_test() expects lists, so convert the dataframes to lists
 
     print(f"t-statistic: {t_stat_p3}")
     print(f"p-value: {p_value_p3}")
@@ -368,22 +380,26 @@ def main():
     # 4. weekend warriors
     print("\n------------------\n weekend warriors\n------------------\n")
 
-    # I am again re-using the pevious fitbit steps data
-    valid_dfs = [df for df in fitbit_dfs if df is not None]
-    all_participants_df = pd.concat(valid_dfs, ignore_index=True)
+    fb_valid_data = [df for df in fb_dataframes if df is not None] # reuse daily steps dataframes
+    fb_steps = pd.concat(fb_valid_data, ignore_index=True) # I know that this is a re-used variable
 
-    steps_cols = [col for col in all_participants_df.columns if col.startswith("Steps")]
-    all_participants_df['hourly_steps'] = all_participants_df[steps_cols].sum(axis=1)
+    fb_steps_cols = [col for col in fb_steps.columns if col.startswith("Steps")] # seperate the minute steps columns
+    fb_steps["hourly_steps"] = fb_steps[fb_steps_cols].sum(axis=1) # combine into hourly steps
 
-    daily_steps_df = all_participants_df.groupby('Date')['hourly_steps'].sum().reset_index() # since I am working with dataframes (from the pandas package), I can sort by date easily
-    daily_steps_df.rename(columns={'hourly_steps': 'total_daily_steps'}, inplace=True)
+    fb_steps_formatted = (
+        fb_steps.groupby("Date")["hourly_steps"].sum().reset_index()
+    )  # sort by date
+    fb_steps_formatted.rename(columns={"hourly_steps": "total_daily_steps"}, inplace=True) # reformat hourly --> daily
 
-    daily_steps_df['day_of_week'] = pd.to_datetime(daily_steps_df['Date']).dt.weekday
+    fb_steps_formatted["day_of_week"] = pd.to_datetime(fb_steps_formatted["Date"]).dt.weekday # add a days column
 
-    anova_data_pd = daily_steps_df.groupby('day_of_week')['total_daily_steps'].apply(list).tolist()
+    # format for anova()
+    fb_steps_anova = (
+        fb_steps_formatted.groupby("day_of_week")["total_daily_steps"].apply(list).tolist()
+    )
 
     # anova() already handles errors, so just directly pass in the data
-    f_stat_p4, p_value_p4 = anova(anova_data_pd)
+    f_stat_p4, p_value_p4 = anova(fb_steps_anova)
     print(f"f-stat: {f_stat_p4}")
     print(f"f-value: {p_value_p4}")
 
@@ -391,20 +407,32 @@ def main():
     # 5. seasonality
     print("\n-------------\n seasonality\n-------------\n")
 
-    multiyear_daily_steps_file = 'sample-data/multiyear/dailySteps.csv'
-    multiyear_steps_df = pd.read_csv(multiyear_daily_steps_file)
-    multiyear_steps_df['ActivityDay'] = pd.to_datetime(multiyear_steps_df['ActivityDay'])
-    
-    multiyear_steps_df['Year'] = multiyear_steps_df['ActivityDay'].dt.year
-    multiyear_steps_df['Month'] = multiyear_steps_df['ActivityDay'].dt.month
-    
-    monthly_avg_steps = multiyear_steps_df.groupby(['Year', 'Month'])['StepTotal'].mean().reset_index()
-    
-    pivot_df = monthly_avg_steps.pivot(index='Year', columns='Month', values='StepTotal')
-    
+    # now we are working with the multiyear/ data
+    # do similar .csv processing as above
+    multi_steps_file = "sample-data/multiyear/dailySteps.csv"
+    multi_steps = pd.read_csv(multi_steps_file)
+    multi_steps["ActivityDay"] = pd.to_datetime(
+        multi_steps["ActivityDay"]
+    ) # convert into dataframes
+
+    # process by year and month
+    multi_steps["Year"] = multi_steps["ActivityDay"].dt.year
+    multi_steps["Month"] = multi_steps["ActivityDay"].dt.month
+
+    # group by month and year and calculate mean
+    monthly_avg_steps = (
+        multi_steps.groupby(["Year", "Month"])["StepTotal"]
+        .agg(calculate_mean) # this line runs calculate_mean() on each month
+        .reset_index()
+    )
+
+    pivot_df = monthly_avg_steps.pivot(
+        index="Year", columns="Month", values="StepTotal"
+    )
+
     if pivot_df.isnull().values.any():
         pivot_df.fillna(0, inplace=True)
-    
+
     rmanova_data = pivot_df.values.tolist()
 
     f_stat_p5, p_value_p5 = rmanova(rmanova_data)

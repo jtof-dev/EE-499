@@ -11,3 +11,5 @@ texlive-basic texlive-latexextra texlive-fontsrecommended texlive-fontsextra tex
 # homework 2
 
 - I am using `uv` to manage the python packages, to replicate the environment use `uv sync` (and have `uv` installed)
+
+- run with `uv run main.py`
