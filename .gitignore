@@ -3,3 +3,5 @@ src/homework-1/*
 !src/homework-1/*.bib
 
 src/homework-2/.venv
+src/homework-2/__pycache__
+src/homework-2/homework-2.pdf
