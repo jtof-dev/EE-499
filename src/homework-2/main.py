@@ -8,6 +8,10 @@ def calculate_mean(data, use_harmonic=False):
     defaults to arithmetic mean, but can be overwritten by passing `use_harmonic=True`
     returns either a mean or a list of means
     """
+    # if the data is a pandas object, convert it to a list
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        data = data.tolist()
+
     # check if data is a list of lists, and not a pandas series or dataframe
     if isinstance(data, list) and data and isinstance(data[0], list):
         results = []
@@ -43,6 +47,10 @@ def std_dev(data):
     """
     calculates population standard deviation from a list of data
     """
+    # if the data is a pandas object, convert it to a list
+    if isinstance(data, (pd.DataFrame, pd.Series)):
+        data = data.values.flatten().tolist()
+
     n = len(data)  # sanity check on data
     if n == 0:
         return 0
@@ -85,6 +93,10 @@ def t_test(data1, data2, use_harmonic=False):
 
     # handle whether the inputs are datasets with needed parameters, or if they need to be calculated first
     for data in [data1, data2]:
+        # if the data is a pandas object, convert it to a list
+        if isinstance(data, (pd.DataFrame, pd.Series)):
+            data = data.tolist()
+
         if isinstance(data, (list, tuple)) and not isinstance(data[0], (int, float)):
             params.append(data)
         else:
@@ -115,6 +127,10 @@ def anova(datasets):
     """
     calculates the anova f-stat and p-value for 3 or more datasets
     """
+    # if the data is a pandas object, convert it to a list
+    if isinstance(datasets, (pd.DataFrame, pd.Series)):
+        datasets = datasets.tolist()
+
     m = len(datasets)  # sanity check on datasets
     if m < 3:
         return "error: anova requires at least 3 datasets"
@@ -156,6 +172,13 @@ def rmanova(datasets):
     """
     calculates the rmanova f-stat and p-value from an inputted dataset (list of lists)
     """
+    # if the data is a pandas object, convert it to a list of lists
+    if isinstance(datasets, pd.DataFrame):
+        # handle any null values so that rmanova() is happy
+        if datasets.isnull().values.any():
+            datasets.fillna(0, inplace=True)
+        datasets = datasets.values.tolist()
+
     num_rows = len(datasets)
     num_columns = len(datasets[0])
 
@@ -197,39 +220,39 @@ def rmanova(datasets):
 
 
 def main():
-    # 1. daily steps
-    print("-------------\n daily steps\n-------------\n")
-
-    # read all four participant's .csv's and save file paths
+    # reusable preprocessing for fitbit dataframes
     fitbit_participant_files = [
         f"sample-data/actigraph-and-fitbit/fitbit/{i}_FB_minuteSteps.csv"
         for i in range(1, 5)
     ]
+    fb_dataframes = []  # since I will re-use the fitbit steps data, I will also store it in a dataframe for later
 
-    daily_steps = []
-    fb_dataframes = [] # since I will re-use the fitbit steps data, I will also store it in a dataframe for later
-
-    # iterate through all four daily steps .csv files and sum up number of steps
     for file_path in fitbit_participant_files:
         try:
             fb_steps_csv_daily = pd.read_csv(file_path)
-            fb_dataframes.append(fb_steps_csv_daily)  # stor steps data for reuse
+            # manually set date formatting so pandas can read them correctly (or else it fails to detect the format)
+            fb_steps_csv_daily["ActivityHour"] = pd.to_datetime(
+                fb_steps_csv_daily["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
+            )
+            fb_steps_csv_daily["Date"] = fb_steps_csv_daily["ActivityHour"].dt.date
+            fb_dataframes.append(fb_steps_csv_daily)  # store steps data for reuse
         except Exception as e:
             print(f"error reading {file_path}: {e}")
-            fb_dataframes.append(None)
-            continue
 
-        # manually set date formatting so pandas can read them correctly (or else it fails to detect the format)
-        fb_steps_csv_daily["ActivityHour"] = pd.to_datetime(
-            fb_steps_csv_daily["ActivityHour"], format="%m/%d/%Y %I:%M:%S %p"
-        )
-        fb_steps_csv_daily["Date"] = fb_steps_csv_daily["ActivityHour"].dt.date
+    # define the minutes columns, assuming they're the same for all files
+    fb_steps_cols = (
+        [col for col in fb_dataframes[0].columns if col.startswith("Steps")]
+        if fb_dataframes
+        else []
+    )
 
-        # define the minutes columns
-        fb_steps_cols = [
-            col for col in fb_steps_csv_daily.columns if col.startswith("Steps")
-        ]
+    # 1. daily steps
+    print("-------------\n daily steps\n-------------\n")
 
+    daily_steps = []
+
+    # iterate through all four daily steps .csv files and sum up number of steps
+    for fb_steps_csv_daily in fb_dataframes:
         # group by day to calculate daily mean
         daily_groups = fb_steps_csv_daily.groupby("Date")
 
@@ -253,21 +276,9 @@ def main():
 
     # iterate through all four participants
     for steps_variance in fb_dataframes: # reuse daily steps dataframes
-        if steps_variance is None:
-            continue
-        # isolate the minutes steps columns
-        fb_steps_cols = [
-            col for col in steps_variance.columns if col.startswith("Steps")
-        ]
-
-        # flatten values into a 2D grid of steps into one long list
-        all_minute_observations = (
-            steps_variance[fb_steps_cols].values.flatten().tolist()
-        )
-
         # calculate this participant's (sigma, n)
-        sigma_i = std_dev(all_minute_observations)
-        n_i = len(all_minute_observations)
+        sigma_i = std_dev(steps_variance[fb_steps_cols])
+        n_i = len(steps_variance[fb_steps_cols].values.flatten().tolist())
 
         participant_stats.append([sigma_i, n_i])
 
@@ -290,12 +301,6 @@ def main():
 
     # process fitbit steps data
     for fb_steps in fb_dataframes: # reuse daily steps dataframes
-        if fb_steps is None:
-            continue
-        # using pandas to format
-        fb_steps["ActivityHour"] = pd.to_datetime(fb_steps["ActivityHour"]) # process the dates as pandas `datetime`s
-        fb_steps_cols = [col for col in fb_steps.columns if col.startswith("Steps")]
-
         # combine the 60 steps columns into one steps list
         fb_steps_melt = fb_steps.melt(
             id_vars=["ActivityHour"],
@@ -370,8 +375,8 @@ def main():
 
     # now run the t-test on the processed data
     t_stat_p3, p_value_p3 = t_test(
-        merged_data["Steps_fitbit"].tolist(), merged_data["Steps_actigraph"].tolist()
-    ) # t_test() expects lists, so convert the dataframes to lists
+        merged_data["Steps_fitbit"], merged_data["Steps_actigraph"]
+    )
 
     print(f"t-statistic: {t_stat_p3}")
     print(f"p-value: {p_value_p3}")
@@ -380,10 +385,9 @@ def main():
     # 4. weekend warriors
     print("\n------------------\n weekend warriors\n------------------\n")
 
-    fb_valid_data = [df for df in fb_dataframes if df is not None] # reuse daily steps dataframes
-    fb_steps = pd.concat(fb_valid_data, ignore_index=True) # I know that this is a re-used variable
+    fb_steps = pd.concat(fb_dataframes, ignore_index=True) # I know that this is a re-used variable
 
-    fb_steps_cols = [col for col in fb_steps.columns if col.startswith("Steps")] # seperate the minute steps columns
+    # seperate the minute steps columns
     fb_steps["hourly_steps"] = fb_steps[fb_steps_cols].sum(axis=1) # combine into hourly steps
 
     fb_steps_formatted = (
@@ -395,7 +399,7 @@ def main():
 
     # format for anova()
     fb_steps_anova = (
-        fb_steps_formatted.groupby("day_of_week")["total_daily_steps"].apply(list).tolist()
+        fb_steps_formatted.groupby("day_of_week")["total_daily_steps"].apply(list)
     )
 
     # anova() already handles errors, so just directly pass in the data
@@ -420,22 +424,18 @@ def main():
     multi_steps["Month"] = multi_steps["ActivityDay"].dt.month
 
     # group by month and year and calculate mean
-    monthly_avg_steps = (
+    multi_monthly_avg_steps = (
         multi_steps.groupby(["Year", "Month"])["StepTotal"]
-        .agg(calculate_mean) # this line runs calculate_mean() on each month
+        .agg(calculate_mean) # this line runs calculate_mean() on each month (arithmetic)
         .reset_index()
     )
 
-    pivot_df = monthly_avg_steps.pivot(
+    multi_steps_pivot = multi_monthly_avg_steps.pivot(
         index="Year", columns="Month", values="StepTotal"
-    )
+    ) # adjusts the dataframe to sort by year and month, with monthly averaged steps
 
-    if pivot_df.isnull().values.any():
-        pivot_df.fillna(0, inplace=True)
-
-    rmanova_data = pivot_df.values.tolist()
-
-    f_stat_p5, p_value_p5 = rmanova(rmanova_data)
+    # now run it through rmanova()
+    f_stat_p5, p_value_p5 = rmanova(multi_steps_pivot)
     print(f"f-stat: {f_stat_p5}")
     print(f"p-value: {p_value_p5}")
 
