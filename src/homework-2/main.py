@@ -380,11 +380,11 @@ def main():
     )
 
     # now run the t-test on the processed data
-    t_stat_p3, p_value_p3 = t_test(
+    t_test_p3, p_value_p3 = t_test(
         merged_data["Steps_fitbit"], merged_data["Steps_actigraph"]
     )
 
-    print(f"t-stat: {t_stat_p3}")
+    print(f"t-test: {t_test_p3}")
     print(f"p-value: {p_value_p3}")
 
     # -------------------
@@ -411,6 +411,24 @@ def main():
         fb_steps_formatted["Date"]
     ).dt.weekday  # add a days column
 
+    # Andy from the future here: the f-stat will show that there is a significant difference between days of the week, so I am also taking the averages and outputting them here
+    # for the anova(), all four participants are combined, so that's why the output of this average will be in the 20-50k range
+    daily_avg_steps = fb_steps_formatted.groupby("day_of_week")[
+        "total_daily_steps"
+    ].apply(calculate_mean) # using harmonic
+    day_names = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ]
+    print("average steps per day of the week:")
+    for day_index, avg_steps in daily_avg_steps.items():
+        print(f"{day_names[day_index]}: {avg_steps:.2f}")
+
     # format for anova()
     fb_steps_anova = fb_steps_formatted.groupby("day_of_week")[
         "total_daily_steps"
@@ -418,7 +436,7 @@ def main():
 
     # anova() already handles errors, so just directly pass in the data
     f_stat_p4, p_value_p4 = anova(fb_steps_anova)
-    print(f"f-stat: {f_stat_p4}")
+    print(f"\nf-stat: {f_stat_p4}")
     print(f"p-value: {p_value_p4}")
 
     # --------------
