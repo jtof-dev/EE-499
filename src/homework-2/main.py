@@ -1,3 +1,6 @@
+# I ran this script using `uv run main.py`, and to install the two dependencies run `uv sync` (`uv` is a python virtual environment manager and package manager)
+# if you don't want to use `uv`, the only packages used are `pandas` and `scipy`
+
 import pandas as pd  # used to parse .csv's
 from scipy import stats  # used for p-value calculations
 
@@ -415,7 +418,7 @@ def main():
     # for the anova(), all four participants are combined, so that's why the output of this average will be in the 20-50k range
     daily_avg_steps = fb_steps_formatted.groupby("day_of_week")[
         "total_daily_steps"
-    ].apply(calculate_mean) # using harmonic
+    ].apply(calculate_mean)  # using harmonic
     day_names = [
         "monday",
         "tuesday",
@@ -476,4 +479,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
