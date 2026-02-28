@@ -9,3 +9,8 @@ src/research-paper/*
 src/homework-2/.venv
 src/homework-2/__pycache__
 src/homework-2/homework-2.pdf
+
+src/questions-and-hypotheses/*
+!src/questions-and-hypotheses/*.tex
+!src/questions-and-hypotheses/*.bib
+
