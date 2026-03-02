@@ -20,4 +20,5 @@ texlive-basic texlive-latexextra texlive-fontsrecommended texlive-fontsextra tex
 
 # research paper
 
-- the first draft submitted on March 24th is commit `29026ccd9f280b27fd58d26c45ac937e396b7561` (or, [here](https://github.com/jtof-dev/EE-499/tree/29026ccd9f280b27fd58d26c45ac937e396b7561))
+- the first draft of the lit review, submitted on March 24th is commit `29026ccd9f280b27fd58d26c45ac937e396b7561` (or, [here](https://github.com/jtof-dev/EE-499/tree/29026ccd9f280b27fd58d26c45ac937e396b7561))
+  - since then, I have renamed it to `lit-review.pdf`
