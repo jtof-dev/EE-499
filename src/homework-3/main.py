@@ -138,6 +138,16 @@ def main():
 
     # custom k-means
     custom_clusters, custom_centroids = kmeans(df[["StepTotal"]], k)
+
+    # create a labels list from the custom clusters
+    data_list_for_labels = df[["StepTotal"]].values.tolist()
+    custom_labels = [0] * len(data_list_for_labels)
+    for i, point in enumerate(data_list_for_labels):
+        for cluster_idx, cluster in enumerate(custom_clusters):
+            if point in cluster:
+                custom_labels[i] = cluster_idx
+                break
+
     # flatten custom centroids for easy reading
     c_centers = sorted([round(c[0]) for c in custom_centroids])
 
@@ -154,23 +164,30 @@ def main():
     # define variables for knn
     n_neighbors = 5
 
-    # hypothetical test point of 5k steps in a day
-    test_point = [5000]
-
-    # calculate custom knn
-    custom_prediction = knn(
-        df[["StepTotal"]], sk_kmeans.labels_, test_point, k=n_neighbors
-    )
-
-    # then, scikit knn
-    sk_knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-    sk_knn.fit(X, sk_kmeans.labels_)
-    sk_prediction = sk_knn.predict([test_point])[0]
+    # hypothetical test points for different activity levels
+    test_points = [[2000], [8000], [14000]]
 
     print(f"\n k-nearest neighbors:")
-    print(f"  testing both models with a new data point: {test_point[0]} steps")
-    print(f"  custom prediction (k={n_neighbors}): cluster {custom_prediction}")
-    print(f"  sklearn prediction (k={n_neighbors}): cluster {sk_prediction}")
+    print(f"  testing both models with new data points (k={n_neighbors}):")
+
+    # scikit-learn knn can predict all points at once
+    sk_knn = KNeighborsClassifier(n_neighbors=n_neighbors)
+    sk_knn.fit(X, sk_kmeans.labels_)
+    sk_predictions = sk_knn.predict(test_points)
+
+    # loop through test points for custom knn and comparison
+    for i, point in enumerate(test_points):
+        # calculate custom knn for each point
+        custom_prediction = knn(
+            df[["StepTotal"]], custom_labels, point, k=n_neighbors
+        )
+
+        # get the corresponding scikit-learn prediction
+        sk_prediction = sk_predictions[i]
+
+        print(f"\n - for point: {point[0]} steps")
+        print(f"    custom prediction:  cluster {custom_prediction}")
+        print(f"    sklearn prediction: cluster {sk_prediction}")
 
     # ------------------------
     # 2. change point analysis
