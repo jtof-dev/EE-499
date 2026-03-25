@@ -1,4 +1,5 @@
-\documentclass[journal]{IEEEtran}
+% \documentclass[journal]{IEEEtran}
+\documentclass[journal, onecolumn]{IEEEtran}
 
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amsfonts}
@@ -15,7 +16,7 @@
 
 \begin{document}
 
-\title{title}
+\title{Circuit Diagram for a Wearable Anxiety Monitor}
 
 \author{Andy Babcock \\
     \textit{Steve Sanghi College of Engineering, Northern Arizona University} \\
@@ -24,7 +25,16 @@
 }
 
 \maketitle
-text
+To realize a wearable anxiety monitor, a NeuroSky MindWave Mobile 2 is being used. This headset was released in 2018, and included first-party software support on Windows, Android, and iOS~\cite{neurosky2018mwm2}. However, it appears that those pieces of software didn't receive significant updates post-release. Though the MindWave Mobile 2 is a relatively cheap electroencephalogram (EEG) headset, there are optimized algorithms that allow for accurate anxiety tracking, even on cheap EEGs~\cite{ChatterjeeDebatri2023Doms}.
+
+For the physical wiring, the MindWave Mobile 2 only supports Bluetooth, with about equal software support on Windows and Android (the two OS's used by myself and Cameron). While direct sync to a PC or laptop using NeuroSky's software would likely work fine, I only have Linux installed on my laptop and desktop, potentially requiring a re-implementation of NeuroSky's software in a third-party program like OpenViBE~\cite{neurosky2018mwm2,openvibe2013}. However, both of us have Android phones, making NeuroSky's eegID mobile app a better option~\cite{neurosky2026eegid}. Setting up this app is relatively easy, requiring a manual connection in Bluetooth settings, then the app handles data recording and processing. To sync that data from the phone to a computer, it is easiest to export as a CSV file post-hoc. However, it would also likely be possible to stream the collected data in real-time or close to real-time using UDP or TCP (UDP is faster with fewer integrity checks on the data transmitted), though it may require a third-party app instead of eegID.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{diagram.png}
+    \caption{Proposed System Diagram}
+    \label{fig:my_image}
+\end{figure}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
