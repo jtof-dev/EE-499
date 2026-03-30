@@ -14,3 +14,7 @@ src/research-paper/*/*
 src/homework-3/.venv
 src/homework-3/__pycache__
 src/homework-3/homework-3.pdf
+
+src/testing/.venv
+src/testing/__pycache__
+
