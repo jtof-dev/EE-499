@@ -22,3 +22,8 @@ texlive-basic texlive-latexextra texlive-fontsrecommended texlive-fontsextra tex
 
 - the first draft of the lit review, submitted on March 24th is commit `29026ccd9f280b27fd58d26c45ac937e396b7561` (or, [here](https://github.com/jtof-dev/EE-499/tree/29026ccd9f280b27fd58d26c45ac937e396b7561))
   - since then, I have renamed it to `lit-review{date}.pdf`
+
+# wearable data analysis
+
+- this subfolder (`src/wearable-data-analysis`) contains the scripts used to analyze our data
+- right now, I am using `uv` to manage the python virtual environment. set it up with `uv sync`, and run with `uv run main.py`
