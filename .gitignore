@@ -25,6 +25,11 @@ src/research-paper/eeg-data-analysis/.venv
 src/research-paper/eeg-data-analysis/__pycache__
 src/research-paper/eeg-data-analysis/*.pkl
 
+src/research-paper/stroop/metrics.csv
+
+src/research-paper/typing/metrics.csv
+src/research-paper/typing/local_word_cache.txt
+
 
 src/testing/.venv
 src/testing/__pycache__
