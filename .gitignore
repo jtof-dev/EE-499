@@ -16,10 +16,10 @@ src/research-paper/old/*/*
 !src/research-paper/old/*/*.tex
 !src/research-paper/old/*/*.bib
 
-src/research-paper/latex/*/*
-!src/research-paper/latex/*/figures/
-!src/research-paper/latex/*/*.tex
-!src/research-paper/latex/*/*.bib
+src/research-paper/latex/*
+!src/research-paper/latex/figures/
+!src/research-paper/latex/*.tex
+!src/research-paper/latex/*.bib
 
 src/research-paper/eeg-data-analysis/.venv
 src/research-paper/eeg-data-analysis/__pycache__
