@@ -6,17 +6,25 @@ src/homework-2/.venv
 src/homework-2/__pycache__
 src/homework-2/homework-2.pdf
 
-src/research-paper/*/*
-!src/research-paper/*/figures/
-!src/research-paper/*/*.tex
-!src/research-paper/*/*.bib
-
 src/homework-3/.venv
 src/homework-3/__pycache__
 src/homework-3/homework-3.pdf
 
+
+src/research-paper/old/*/*
+!src/research-paper/old/*/figures/
+!src/research-paper/old/*/*.tex
+!src/research-paper/old/*/*.bib
+
+src/research-paper/latex/*/*
+!src/research-paper/latex/*/figures/
+!src/research-paper/latex/*/*.tex
+!src/research-paper/latex/*/*.bib
+
+src/research-paper/eeg-data-analysis/.venv
+src/research-paper/eeg-data-analysis/__pycache__
+src/research-paper/eeg-data-analysis/*.pkl
+
+
 src/testing/.venv
 src/testing/__pycache__
-
-src/wearable-data-analysis/.venv
-src/wearable-data-analysis/__pycache__

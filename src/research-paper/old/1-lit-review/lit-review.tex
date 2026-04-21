@@ -1,0 +1,69 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+\usepackage{algorithmic}
+
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\title{A Review of Noise-Based Anxiety Relief: From White Noise to EEG Assessment}
+
+\author{Andy Babcock \\
+    \textit{Steve Sanghi College of Engineering, Northern Arizona University} \\
+    Flagstaff, AZ, USA \\
+    aab726@nau.edu
+}
+
+\maketitle
+
+\section{Introduction}
+Anxiety and anxiety disorders are one of the most prevalent mental health conditions, predominately affecting youth and young adults, ages 10-24~\cite{BieFengsai2024Rgbo}. In the past 35 years, anxiety disorders have increased by 52\% among adolescents and young adults. Daily anxiety affects nearly all parts of life, especially test-taking in college-age students. Existing anxiety conditions can be heightened during test-taking through stressors such as GPA-based scholarships or working a part-time job. Luckily, anxiety can be mitigated even without changing the specific circumstances that cause it. One way is playing white noise: a 2025 study examined how the anxiety levels of college students undergoing Cognitive Behavioral Therapy (CBT) were changed by white noise~\cite{LiLi2025EoWN}. This study focuses on the difference in anxiety, depression, and sleep quality when only undergoing CBT, and while also listening to white noise in therapy. CBT represents a different dynamic to test-taking, but shares some qualities, such as therapy being an innate stessor, which can compound with external stressors (i.e.: needing to set boundaries with family). Anxiety levels in test-taking can be be monitored for changes from external factors like white noise or music using an Electroencephalogram (EEG) to measure changes in brain activity which is correlated to anxiety.
+
+\section{The Effect of White Noise on Anxiety}
+A 2022 paper examines the effect of white noise on anxiety in operating room staff~\cite{ShahrokhiShabnam2022Teow}. Operating rooms share many similarities with test-taking, presenting both inherent stressors (successfully operating on another human) and external stressors (an expectation for the staff to do their jobs well and quickly). Anxiety reduces performance at work, so any simple solution that could potentially decrease anxiety would represent a painless way to improve performance. Noise is an inherent source of anxiety, which disproportionately affects operating rooms more than other medical environments thanks to numerous pieces of loud equipment. Therefore any distraction from that noise could reduce anxiety as well. Previous studies found that music significantly reduces stress, but also reduces the surgeon's auditory processing~\cite[p.~2]{WayT.JustinMD2013EoNo}. A potential middle ground that addresses this issue are less audible, muffled sounds that draw less attention than music would. Thus, the study chose white noise from a suction machine, which is already commonly used in operating rooms.
+
+The paper tests this hypothesis with a single-blind, crossover clinical trial on staff conducting cesarean sections, both with and without white noise from a suction machine. To test for differences in anxiety, the study measured hemodynamic parameters for the physical signs of anxiety, and used the Spielberger State-Trait Anxiety Inventory to measure anxiety level~\cite[pg.~1]{ShahrokhiShabnam2022Teow}. However, the study found no significant difference in anxiety whether the suction machine was running or not. The paper theorized that meaningless sounds like white noise are adapted to in the same way as other operating room noises, reducing its impact~\cite[pg.~3]{ShahrokhiShabnam2022Teow}.
+
+Due to limited existing literature on the effect of different types of noise during test-taking, this study provides helpful reference data to consider when examining testing parameters for a wearable that measures anxiety in test-taking. While this study found no correlation, the operating room is a significantly louder environment than a classroom, though the difference in environment may not change the outcome. When testing different kinds of noise while test-taking, it will be important to focus on both white noise and music, and on how both anxiety levels and scores vary.
+
+\section{Measuring Anxiety with an Electroencephalogram}
+\subsection{Classifying Anxiety using K-Nearest Neighbors}
+Thanks to the rapid improvements in AI, it is easier and more accurate than ever before to measure anxiety using cheap Electroencephalograms (EEGs). A 2022 paper examines how to accurately measure anxiety (called stress interchangeably in the paper, referred to as anxiety here for clarity) while compensating for limitations from cheaper hardware and added noise from measuring through the skull and tissue~\cite{ChatterjeeDebatri2023Doms}. Anxiety manifests as altered brain function across multiple sections of the brain, starting in the amygdala, which then activates the hypothalamus, which stimulates the autonomic nervous system, which then physically presents as 'fight or flight'~\cite[pg.~2]{ChatterjeeDebatri2023Doms}. While this serves works as a quick representation of how anxiety can be modeled in the brain, an EEG cannot read information that accurately. Instead, it can read the result of those signals passing through multiple layers of tissues with various electrical properties, and the skull before reaching the sensor~\cite[pg.~2]{ChatterjeeDebatri2023Doms}. To compensate for this, models of the spatio-temporal transition patterns can identify maximum and minimum values which can be interpreted as stress levels.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/EEG-mental-stress-figure.png}
+    \caption{Flowchart of the proposed approach. Reprinted from \cite{ChatterjeeDebatri2023Doms}.}
+    \label{fig:borrowed_image}
+\end{figure}
+
+To extract meaningful data from an EEG signal, the data is processed in four steps~\cite[pg.~4]{ChatterjeeDebatri2023Doms}. First, a 30-second segment of data is pre-processed using a FIR band-pass filter to remove noise and an Automatic Artifact Removal tool suing Blind Source Separation-Canonical Correlation Analysis to remove extra signals from blinking or jaw clenching. Next, any important features are extracted and calculated. Hjorth parameters, which measure activity, mobility, and complexity, are calculated from the various frequencies of each 1-second chunk within the 30-second segment. Additionally, an Engagement Index is calculated as a ratio of beta band power to the sum of alpha and theta band power, which serves as a direct measurement of anxiety. Third, The spacio-temporal transition calculations map those features onto N x M matrices, where N is the number of EEG channels and M is the number of time windows. Those matrices are used to find maximum and minimum values for a feature, and track how they shift over time. Lastly, that data is classified into both binary stress levels (light vs. severe) and 4-class stress levels using a K-Nearest Neighbors. The study compared their classified binary and 4-level anxiety levels against the existing, state-of-the-art dataset, DASPS, and found that both binary and 4-level classifications were 83.8\% accurate~\cite[pg.~5]{ChatterjeeDebatri2023Doms}.
+
+\subsection{Classifying Anxiety using a Convolutional Neural Network}
+Three years later, a new paper examined using a Convolutional Neural Network (CNN) to further improve the accuracy of anxiety measurement in cheap EEG sensors, also comparing against the DASPS dataset~\cite{GhonchiHamidreza2025MMCA}. This paper theorized that deep learning models can better learn and model the complex patterns in EEG signals than traditional machine learning can. Additionally, deep learning can automatically extract relevant features, simplifying the path from raw data to anxiety classifications.
+
+Using deep learning reduces the complexity in total calculations and additional data processing required. A CNN is trained on the raw EEG data, which learns and extracts the optimal frequency-based features~\cite{GhonchiHamidreza2025MMCA}. Those features are then fed into a Transformer, which adds weights to different parts of the signal, and uses the Squeeze-and-Excitation Attention method to evaluate the spacial relationships between different EEG channels on the scalp. Once fully trained, this pipeline also produces both binary and 4-level anxiety classifications, and achieves 82.94\% accuracy on binary and 74.05\% on 4-level. While the binary classification was able to match the DASPS' score of 83.5\%, the 4-level fell short, likely due to the dataset not being large enough to properly take advantage of deep learning's advantages.
+
+\section{Application in Test-Taking Scenarios}
+The above examined studies on axiety and EEG anxiety assessment provides a solid base to extrapolate how noise would effect anxiety while test-taking. White noise in the operating room showed no difference in anxiety level, while music decreased anxiety and auditory processing\cite{ShahrokhiShabnam2022Teow, WayT.JustinMD2013EoNo}. In an operating room, auditory processing is critical, but in an otherwise quiet test-taking environment, it is much less important so long as the ability to score well remains unaffected.
+
+Listening to white noise shows no statistically significant reduction in anxiety or improvement in test scores, tested with a wearable EEG measuring anxiety. If there is a reduction in anxiety, there may also be an improvement in test scores. Additionally, we will test familiar and unfamiliar music, with the expectation that familair music reduces anxiety and improves test scores, while unfamiliar music reduces anxiety at the cost of lower test scores. Alternatively, familiar music may not improve test scores, or unfamilir music may improve test scores similarly to familiar music. Additionally, unfamiliar music can be split into distinct genres that may have varying levels of distraction: jazz, for example, may be less distracting than pop or rock music.
+
+Using a wearable EEG that measures stress, we will test these claims by repeatedly taking tests while various kinds of noise play. EEGs have already proven to be accurate in tracking stress, and allows for continuous monitoring throughout test-taking~\cite{ChatterjeeDebatri2023Doms}. With an EEG, we can track how anxiety levels shift throughout the test-taking process, allowing for insights like when axiety is at its highest, and how much various kinds of noise dampen that peak. The EEG used will be a cheaper module, so one of the two anxiety classification methods examined above will be used. Without an excess of data to train on, the K-Nearest Neighbors algorithm is likely to yield more accurate nuanced results than the CNN algorithm would.
+
+\section{Conclusion}
+For a potential EEG wearable that measures stress while test-taking, various kinds of noise will change anxiety level and test performance. For example, music will likely reduce anxiety at the cost of lower test scores, while white noise may show little change~\cite{ShahrokhiShabnam2022Teow}. There are multiple existing methods of interpreting cheap EEG sensor data, which can compensate for the reduced signal accuracy and nearly match the DASPS benchmark dataset~\cite{ChatterjeeDebatri2023Doms, GhonchiHamidreza2025MMCA}. Of the two methods examined, the K-Nearest Neighbors algorithm produced more consistent data at the cost of additional computation and complexity, while the CNN produced worse results with lesser computations. For a prospective wearable measuring anxiety, either algorithm would be a solid choice, with the possibility of improving the CNN's results by manually collecting a large amount of data.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
