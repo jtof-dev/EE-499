@@ -65,7 +65,7 @@ class EEGTypingTest:
         self.csv_file = open(CSV_OUTPUT_FILE, mode="w", newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(
-            ["timestampMs", "keys_typed", "errors", "total_words_completed"]
+            ["timestampMs", "keys_pressed", "errors", "total_correct"]
         )
 
         # UI elements
