@@ -214,8 +214,8 @@ def plot_eeg_dashboard(aggregated_results):
     sns.barplot(
         data=summary_data, x="Condition", y="smoothed_load", ax=axes[0], palette="magma"
     )
-    axes[0].set_title("Total Avg Cognitive Load")
-    axes[0].set_ylabel("Peplau Intensity (1.0-2.0)")
+    axes[0].set_title("Total Average Cognitive Load")
+    axes[0].set_ylabel("Anxiety Level(1.0-2.0)")
     axes[0].set_ylim(1.0, 2.0)
 
     # panel 2: timeline (fatigue and adaptation)
@@ -228,8 +228,9 @@ def plot_eeg_dashboard(aggregated_results):
         linewidth=2.5,
         palette="magma",
     )
-    axes[1].set_title("Real-time Load (10s Moving Avg)")
+    axes[1].set_title("Real-time Load (10s Moving Average)")
     axes[1].set_xlabel("Seconds Since Start")
+    axes[1].set_ylabel("Smoothed Anxiety Level")
     axes[1].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
     axes[1].set_ylim(1.0, 2.0)
 

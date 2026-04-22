@@ -110,7 +110,7 @@ summary_df = pd.DataFrame(summary_data)
 sns.set_theme(style="darkgrid")
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 fig.suptitle(
-    f"Participant Analysis: {TARGET_PARTICIPANT_REGEX.strip('^$')}",
+    f"Participant Analysis on Stroop Test: {TARGET_PARTICIPANT_REGEX.strip('^$')}",
     fontsize=16,
     fontweight="bold",
 )
@@ -123,28 +123,41 @@ sns.barplot(
     data=summary_df,
     x="Condition",
     y="Avg Attempts per Run",
+    hue="Condition",
     ax=ax1,
-    color="skyblue",
-    alpha=0.7,
+    palette="magma",
+    alpha=0.8,
+    legend=False,
 )
 sns.lineplot(
     data=summary_df,
     x="Condition",
     y="Accuracy %",
     ax=ax2,
-    color="red",
+    color="black",
     marker="o",
-    linewidth=2,
+    linewidth=2.5,
 )
 
 ax1.set_title(f"Total Output (Post-{DISCARD_SECONDS}s)")
+ax1.set_xlabel("Test Condition")
+ax1.set_ylabel("Avg Total Attempts")
+ax2.set_ylabel("Accuracy (%)")
 ax2.set_ylim(80, 105)
 ax2.grid(False)
 
 # panel 2: throughput over time
 sns.lineplot(
-    data=master_df, x="seconds_elapsed", y="keys_per_sec", hue="Condition", ax=axes[1]
+    data=master_df,
+    x="seconds_elapsed",
+    y="keys_per_sec",
+    hue="Condition",
+    ax=axes[1],
+    palette="magma",
+    linewidth=2,
 )
+axes[1].set_xlabel("Seconds Elapsed")
+axes[1].set_ylabel("Keys per Second")
 axes[1].set_title("Cognitive Throughput (10s Rolling Avg)")
 axes[1].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
 
@@ -155,7 +168,11 @@ sns.lineplot(
     y="cumulative_errors",
     hue="Condition",
     ax=axes[2],
+    palette="magma",
+    linewidth=2,
 )
+axes[2].set_xlabel("Seconds Elapsed")
+axes[2].set_ylabel("Cumulative Errors")
 axes[2].set_title("Error Accumulation Over Time")
 axes[2].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
 
