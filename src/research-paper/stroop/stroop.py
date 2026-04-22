@@ -70,7 +70,7 @@ class StroopTestApp:
         self.root.bind("<Key>", self.handle_keypress)
 
     def draw_key_guide(self):
-        """Draws 4 colored circles with H J K L inside to keep fingers anchored mechanically."""
+        """Draws 4 colored circles with H J K L inside."""
         keys = ["H", "J", "K", "L"]
         colors = ["red", "green", "blue", "yellow"]
 
@@ -95,7 +95,7 @@ class StroopTestApp:
             )
 
     def get_timestamp_ms(self):
-        """Returns Unix epoch time. Syncs perfectly with BrainFlow CSV timestamps."""
+        """Returns Unix epoch time."""
         return int(time.time() * 1000)
 
     def start_test(self):
@@ -123,13 +123,13 @@ class StroopTestApp:
             self.root.after(1000, self.update_timer)
 
     def next_word(self):
-        """Generates the cognitive friction by randomizing word text and ink color."""
+        """Generates the next word and color randomly."""
         word_text = random.choice(COLORS)
         self.current_ink_color = random.choice(COLORS)
         self.word_label.config(text=word_text.upper(), fg=self.current_ink_color)
 
     def trigger_error_flash(self):
-        """Flashes screen dark red. Uses visual feedback to avoid auditory ERPs in the EEG."""
+        """Flashes screen dark red."""
         self.errors_this_sec += 1
 
         error_bg = "#4a0000"
@@ -170,7 +170,7 @@ class StroopTestApp:
         else:
             self.trigger_error_flash()
 
-        # instantly load the next word
+        # load the next word
         self.next_word()
 
     def log_telemetry(self):
@@ -209,8 +209,8 @@ class StroopTestApp:
 
         self.word_label.config(text="TEST COMPLETE", fg="white")
         self.info_label.config(
-            text=f"Total Attempts: {self.total_attempts} | Accuracy: {accuracy:.1f}%\n\n"
-            f"Data saved to {CSV_OUTPUT_FILE}."
+            text=f"total attempts: {self.total_attempts} | accuracy: {accuracy:.1f}%\n\n"
+            f"data saved to {CSV_OUTPUT_FILE}."
         )
 
 

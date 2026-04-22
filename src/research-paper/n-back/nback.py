@@ -5,16 +5,13 @@ import random
 import time
 import tkinter as tk
 
-# --- CONFIGURATION ---
-TEST_DURATION_SECONDS = 300  # 5-minute block to match your exact level_2 datasets
-CSV_OUTPUT_FILE = "nback_metrics_log.csv"
-N_BACK_LEVEL = 3  # Level 3 forces the brain to juggle a shifting 3-item buffer (High Beta/Gamma trigger)
-TARGET_PROBABILITY = (
-    0.30  # 30% chance of a match keeps the user engaged without motor fatigue
-)
+# configuration
+TEST_DURATION_SECONDS = 300
+CSV_OUTPUT_FILE = "metrics.csv"
+N_BACK_LEVEL = 3  # 3 is a very high difficulty level
+TARGET_PROBABILITY = 0.30
 
-# Consonants only. We exclude vowels so the brain cannot "cheat" by turning the letters into pronounceable words.
-LETTERS = "BCDFGHJKLMNPQRSTVWXYZ"
+LETTERS = "BCDFGHJKLMNPQRSTVWXYZ"  # excluding vowels here to avoid being able to make pronounceable words
 
 
 class NBackTestApp:
@@ -24,7 +21,7 @@ class NBackTestApp:
         self.root.geometry("800x600")
         self.root.configure(bg="black")
 
-        # --- STATE VARIABLES ---
+        # state variables
         self.is_running = False
         self.start_time = 0
         self.history = []
@@ -32,41 +29,41 @@ class NBackTestApp:
         self.space_pressed_this_trial = False
         self.trial_active = False
 
-        # --- TELEMETRY ---
+        # telemetry
         self.keys_pressed_this_sec = 0
         self.errors_this_sec = 0
         self.total_correct_cumulative = 0
-        self.total_targets_shown = 0  # Tracked separately to calculate final accuracy
+        self.total_targets_shown = 0
 
-        # Initialize CSV and write standardized headers to match Stroop/Typing for easy Pandas merging
+        # initialize CSV and write standardized headers
         self.csv_file = open(CSV_OUTPUT_FILE, mode="w", newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(
             ["timestampMs", "keys_pressed", "errors", "total_correct"]
         )
 
-        # --- UI ELEMENTS ---
-        # Main Letter Display (Anchored dead-center to prevent eye-darting EOG artifacts)
+        # UI elements
+        # main letter display
         self.letter_label = tk.Label(
             self.root, text="", font=("Helvetica", 120, "bold"), bg="black", fg="white"
         )
         self.letter_label.place(relx=0.5, rely=0.45, anchor="center")
 
-        # Bottom Instructions
+        # bottom instructions
         self.info_label = tk.Label(
             self.root,
-            text=f"Press SPACE when the letter matches the one from {N_BACK_LEVEL} steps ago.\nPress SPACE to begin.",
+            text=f"press SPACE when the letter matches the one from {N_BACK_LEVEL} steps ago\npress SPACE to begin",
             font=("Helvetica", 16),
             bg="black",
             fg="gray",
         )
         self.info_label.place(relx=0.5, rely=0.15, anchor="center")
 
-        # Only bind the spacebar. Minimizes motor-cortex (EMG) noise in the EEG data.
+        # bind the spacebar
         self.root.bind("<space>", self.handle_keypress)
 
     def get_timestamp_ms(self):
-        """Returns Unix epoch time. Syncs perfectly with BrainFlow CSV timestamps."""
+        """Returns Unix epoch time."""
         return int(time.time() * 1000)
 
     def start_test(self):
@@ -98,48 +95,47 @@ class NBackTestApp:
         if not self.is_running:
             return
 
-        # 1. Evaluate "Omission Errors" (Target appeared, but user forgot to press space)
+        # evaluate "omission errors"
         if self.trial_active:
             if self.is_current_target and not self.space_pressed_this_trial:
                 self.errors_this_sec += 1
                 self.trigger_error_flash()
 
-        # 2. Generate the next letter
+        # generate the next letter
         if len(self.history) >= N_BACK_LEVEL and random.random() < TARGET_PROBABILITY:
-            # Force a target match based on the N-Back rule
+            # force a target match based on the n-back rule
             new_letter = self.history[-N_BACK_LEVEL]
             self.is_current_target = True
             self.total_targets_shown += 1
         else:
-            # Force a non-match. Ensure it doesn't accidentally match the N-Back target.
+            # force a non-match and ensure it doesn't accidentally match the N-Back target
             new_letter = random.choice(LETTERS)
             if len(self.history) >= N_BACK_LEVEL:
                 while new_letter == self.history[-N_BACK_LEVEL]:
                     new_letter = random.choice(LETTERS)
             self.is_current_target = False
 
-        # Update the rolling memory buffer
+        # update the rolling memory buffer
         self.history.append(new_letter)
         self.space_pressed_this_trial = False
         self.trial_active = True
 
-        # 3. Flash the letter on screen
+        # flash the letter on screen
         self.letter_label.config(text=new_letter)
 
-        # Letter stays on screen for 500ms, then disappears.
+        # letter stays on screen for 500ms, then disappears
         self.root.after(500, self.hide_letter)
 
-        # A new trial starts every 2000ms (2 seconds).
-        # The 1500ms of blank space forces the brain to actively hold the memory buffer.
+        # new trial starts every 2000ms
         self.root.after(2000, self.next_trial)
 
     def hide_letter(self):
-        """Creates the blank space between letters, inducing the working memory load."""
+        """Creates the blank space between letters."""
         if self.is_running:
             self.letter_label.config(text="")
 
     def trigger_error_flash(self):
-        """Flashes screen dark red. Visual feedback avoids auditory ERPs in the EEG."""
+        """Flashes screen dark red."""
         error_bg = "#4a0000"
         self.root.configure(bg=error_bg)
         self.letter_label.configure(bg=error_bg)
@@ -159,14 +155,14 @@ class NBackTestApp:
             self.start_test()
             return
 
-        # Prevent holding down the spacebar or double-tapping in a single trial
+        # prevent holding down the spacebar or double-tapping in a single trial
         if self.space_pressed_this_trial:
             return
 
         self.space_pressed_this_trial = True
         self.keys_pressed_this_sec += 1
 
-        # Evaluate "Commission Errors" (User pressed space, but it was NOT a match)
+        # evaluate "commission errors"
         if self.is_current_target:
             self.total_correct_cumulative += 1
         else:
@@ -187,13 +183,13 @@ class NBackTestApp:
                 self.total_correct_cumulative,
             ]
         )
-        self.csv_file.flush()  # Force write to disk to prevent data loss
+        self.csv_file.flush()  # force write to disk to prevent data loss
 
-        # Reset counters for the next second of data collection
+        # reset counters for the next second of data collection
         self.keys_pressed_this_sec = 0
         self.errors_this_sec = 0
 
-        # Reschedule this function to run exactly 1000ms from now
+        # reschedule this function to run exactly 1000ms from now
         self.root.after(1000, self.log_telemetry)
 
     def end_test(self):
@@ -209,9 +205,8 @@ class NBackTestApp:
 
         self.letter_label.config(text="TEST COMPLETE", font=("Helvetica", 64, "bold"))
         self.info_label.config(
-            text=f"Total Targets: {self.total_targets_shown} | Correct Hits: {self.total_correct_cumulative} | Accuracy: {accuracy:.1f}%\n\n"
-            f"Stop your BrainFlow logger now.\n"
-            f"Data saved to {CSV_OUTPUT_FILE}."
+            text=f"total Targets: {self.total_targets_shown} | correct Hits: {self.total_correct_cumulative} | accuracy: {accuracy:.1f}%\n\n"
+            f"data saved to {CSV_OUTPUT_FILE}."
         )
 
 

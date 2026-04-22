@@ -1,0 +1,3 @@
+[submodule "src/research-paper/eeg-data-analysis/SingLEM"]
+	path = src/research-paper/eeg-data-analysis/SingLEM
+	url = https://github.com/ttlabtuat/SingLEM.git

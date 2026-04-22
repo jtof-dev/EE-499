@@ -14,7 +14,7 @@ WORD_LIST_URL = "https://raw.githubusercontent.com/first20hours/google-10000-eng
 
 
 def fetch_words():
-    """Fetches dictionary. Caches locally to ensure tests run offline without network latency."""
+    """Fetches dictionary and caches locally."""
     # if os.path.exists(WORD_CACHE_FILE):
     #     with open(WORD_CACHE_FILE, "r") as f:
     # filter out 1-2 letter words to maintain typing difficulty
@@ -29,13 +29,12 @@ def fetch_words():
 
         valid_words = [w.strip() for w in words if len(w.strip()) >= 3]
 
-        # Save cache for future offline runs
+        # save cache for future offline runs
         with open(WORD_CACHE_FILE, "w") as f:
             f.write("\n".join(valid_words))
 
         return valid_words
     except Exception:
-        # Fallback list prevents the script from crashing if internet drops
         return ["error", "network", "failure", "fallback", "offline", "typing"]
 
 
@@ -70,6 +69,7 @@ class EEGTypingTest:
 
         # UI elements
         # left peripheral word. locked to screen center (relx=0.5) but pushed left 280px (x=-280)
+        # this still looks a bit janky but is more than good enough for what the test needs to do
         self.left_label = tk.Label(
             self.root, text="", font=("Courier New", 24), bg="black", fg="#444444"
         )
@@ -107,7 +107,7 @@ class EEGTypingTest:
         # bottom instructions
         self.info_label = tk.Label(
             self.root,
-            text="Type the center word. A typo wipes all words.\nEyes center. Hands still.",
+            text="type the center word; a typo wipes all words",
             font=("Helvetica", 14),
             bg="black",
             fg="gray",
@@ -119,7 +119,7 @@ class EEGTypingTest:
         self.render_center_text("PRESS SPACE", "")
 
     def get_timestamp_ms(self):
-        """Returns Unix epoch time. Syncs exactly with BrainFlow CSV timestamps."""
+        """Returns Unix epoch time."""
         return int(time.time() * 1000)
 
     def start_test(self):
@@ -151,7 +151,7 @@ class EEGTypingTest:
         self.update_display()
 
     def render_center_text(self, remaining, typed):
-        """Injects text into the locked Text widget, coloring typed/untyped segments."""
+        """Injects text into the locked text widget, coloring typed/untyped segments."""
         self.center_text.config(state="normal")
         self.center_text.delete("1.0", tk.END)
 
@@ -264,7 +264,7 @@ class EEGTypingTest:
         self.right_label.config(text="")
         self.render_center_text("TEST COMPLETE", "")
         self.info_label.config(
-            text=f"Total Words: {self.total_words_completed}\nData saved to {CSV_OUTPUT_FILE}."
+            text=f"total words: {self.total_words_completed}\ndata saved to {CSV_OUTPUT_FILE}."
         )
 
 
