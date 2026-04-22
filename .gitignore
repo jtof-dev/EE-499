@@ -23,7 +23,7 @@ src/research-paper/latex/*
 
 src/research-paper/eeg-data-analysis/.venv
 src/research-paper/eeg-data-analysis/__pycache__
-src/research-paper/eeg-data-analysis/*.pkl
+src/research-paper/eeg-data-analysis/singlem_binary_head.pth
 
 src/research-paper/stroop/metrics.csv
 

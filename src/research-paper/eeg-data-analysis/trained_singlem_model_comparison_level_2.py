@@ -10,29 +10,28 @@ import torch
 import torch.nn as nn
 from scipy import signal
 
-# Point Python to the SingLEM submodule
+# import SingLEM from git submodule
 sys.path.append(os.path.join(os.path.dirname(__file__), "SingLEM"))
 from SingLEM.model import Config, EEGEncoder
 
-# --- CONFIGURATION ---
+# configuration
 DATA_DIR = "data/level_2"
 MODEL_WEIGHTS_PATH = "singlem_binary_head.pth"
 TARGET_TEST = "Stroop"
 CONDITIONS = ["Silent", "WhiteNoise", "Music"]
 EEG_COLUMN = "eegRawValueVolts"
 
-# Strict regex for the current analysis session
 TARGET_PARTICIPANT_REGEX = r"^Andy$"
 
-# DSP Constants
+# DSP constants
 ORIGINAL_FS = 512
 TARGET_FS = 128
 WINDOW_SECONDS = 5
 TOKENS_PER_WINDOW = WINDOW_SECONDS
 SAMPLES_PER_TOKEN = TARGET_FS
-DISCARD_SECONDS = 60  # Must match training to ensure we analyze the same brain state
+DISCARD_SECONDS = 60  # must match training to ensure we analyze the same brain state
 
-# Updated Regex to capture the participant name group
+# regex to filter for specific data files
 FILENAME_REGEX = re.compile(
     r"^\d{8}_\d{4}_(?P<participant>[A-Za-z0-9]+)_EEG_(?P<test>Stroop|Typing)_(?P<condition>Silent|WhiteNoise|Music)\.csv$",
     re.IGNORECASE,
@@ -56,7 +55,7 @@ def preprocess_eeg(raw_volts):
     return normalized
 
 
-# --- MODEL ARCHITECTURE ---
+# model architecture
 class BinaryAnxietyClassifier(nn.Module):
     def __init__(self, num_classes=2):
         super(BinaryAnxietyClassifier, self).__init__()
@@ -83,12 +82,12 @@ def load_model():
     model = BinaryAnxietyClassifier(num_classes=2)
     if os.path.exists(MODEL_WEIGHTS_PATH):
         model.load_state_dict(torch.load(MODEL_WEIGHTS_PATH, map_location=device))
-        print(f"✅ Loaded weights: {MODEL_WEIGHTS_PATH}")
+        print(f"loaded weights: {MODEL_WEIGHTS_PATH}")
     else:
-        print(f"⚠️ Warning: {MODEL_WEIGHTS_PATH} not found. Using random weights.")
+        print(f"warning: {MODEL_WEIGHTS_PATH} not found; using random weights")
 
     model.to(device)
-    model.eval()  # CRITICAL: Disables Dropout/BatchNorm for consistent inference
+    model.eval()  # critical: disables dropout/batchnorm for consistent inference
     return model, device
 
 
@@ -102,16 +101,16 @@ def analyze_eeg_files(model, device):
         if not match:
             continue
 
-        # Extract info from filename using capture groups
+        # extract info from filename using capture groups
         file_participant = match.group("participant")
         file_test = match.group("test").capitalize()
         condition = match.group("condition")
 
-        # FILTER 1: Participant Match
+        # filter 1: participant match
         if not participant_filter.search(file_participant):
             continue
 
-        # FILTER 2: Test Type Match (e.g., Stroop)
+        # filter 2: test type match
         if file_test != TARGET_TEST:
             continue
 
@@ -124,7 +123,7 @@ def analyze_eeg_files(model, device):
         raw_volts = df[EEG_COLUMN].values
         poor_signal = df["poorSignal"].values
 
-        # 1. Settling Logic: Skip the noisy 'warm-up' period
+        # skip the first 60 seconds
         samples_to_discard = DISCARD_SECONDS * ORIGINAL_FS
         if len(raw_volts) <= samples_to_discard:
             continue
@@ -132,10 +131,10 @@ def analyze_eeg_files(model, device):
         raw_volts = raw_volts[samples_to_discard:]
         poor_signal = poor_signal[samples_to_discard:]
 
-        # 2. Continuous Preprocessing
+        # continuous preprocessing
         processed_eeg = preprocess_eeg(raw_volts)
 
-        # 3. Optimized Windowing (Removed Redundant Zip Loop)
+        # optimized windowing
         window_size_128 = 5 * TARGET_FS
         step_size_128 = TARGET_FS  # 1-second slide
         time_series_data = []
@@ -144,29 +143,28 @@ def analyze_eeg_files(model, device):
             for start_128 in range(
                 0, len(processed_eeg) - window_size_128, step_size_128
             ):
-                # Map 128Hz index back to 512Hz to check signal quality
+                # map 128Hz index back to 512Hz to check signal quality
                 start_512 = start_128 * 4
                 window_size_512 = window_size_128 * 4
 
                 signal_window = poor_signal[start_512 : start_512 + window_size_512]
                 if np.any(signal_window > 45):
-                    continue  # Artifact detected (e.g. blink or electrode shift)
+                    continue  # artifact detected
 
-                # Prep window for model (Tokens x Samples)
+                # prep window for model
                 window = processed_eeg[start_128 : start_128 + window_size_128]
                 reshaped = window.reshape(TOKENS_PER_WINDOW, SAMPLES_PER_TOKEN)
 
                 x = torch.tensor(reshaped, dtype=torch.float32).unsqueeze(0).to(device)
 
-                # Inference: Convert raw logits to probabilities
+                # convert raw logits to probabilities
                 outputs = model(x)
                 probs = torch.nn.functional.softmax(outputs, dim=1)[0]
 
-                # SCALING LOGIC: Convert Binary Class (0 or 1) to Peplau Scale (1.0 to 2.0)
-                # This gives us a continuous "intensity" value even from a binary model.
+                # scaling logic: convert binary class (0 or 1) to peplau scale (1.0 to 2.0)
                 expected_load = (probs[0].item() * 1.0) + (probs[1].item() * 2.0)
 
-                # Calculate actual timestamp for plotting
+                # calculate actual timestamp for plotting
                 seconds_elapsed = DISCARD_SECONDS + (start_128 // TARGET_FS)
 
                 time_series_data.append(
@@ -178,13 +176,13 @@ def analyze_eeg_files(model, device):
 
         if time_series_data:
             run_df = pd.DataFrame(time_series_data)
-            # Smooth the output to make the line chart readable
+            # smooth the output to make the line chart readable
             run_df["smoothed_load"] = (
                 run_df["cognitive_load"].rolling(window=10, min_periods=1).mean()
             )
             raw_data[condition].append(run_df)
 
-    # Combine all sessions for the same condition (e.g., average multiple Music runs)
+    # combine all sessions for the same condition
     aggregated_results = {}
     for cond, dfs in raw_data.items():
         if dfs:
@@ -198,7 +196,7 @@ def analyze_eeg_files(model, device):
 
 def plot_eeg_dashboard(aggregated_results):
     if not aggregated_results:
-        print("❌ Error: No matching data found for this participant/test combination.")
+        print("error: no matching data found for this participant/test combination")
         return
 
     master_df = pd.concat(aggregated_results.values(), ignore_index=True)
@@ -212,7 +210,7 @@ def plot_eeg_dashboard(aggregated_results):
         fontweight="bold",
     )
 
-    # Panel 1: Bar Chart (Global Averages)
+    # panel 1: bar chart (global averages)
     sns.barplot(
         data=summary_data, x="Condition", y="smoothed_load", ax=axes[0], palette="magma"
     )
@@ -220,7 +218,7 @@ def plot_eeg_dashboard(aggregated_results):
     axes[0].set_ylabel("Peplau Intensity (1.0-2.0)")
     axes[0].set_ylim(1.0, 2.0)
 
-    # Panel 2: Timeline (Fatigue & Adaptation)
+    # panel 2: timeline (fatigue and adaptation)
     sns.lineplot(
         data=master_df,
         x="seconds_elapsed",
@@ -240,8 +238,7 @@ def plot_eeg_dashboard(aggregated_results):
 
 
 if __name__ == "__main__":
-    print(f"🚀 Initializing Inference for Participant: {TARGET_PARTICIPANT_REGEX}")
+    print(f"initializing inference for participant: {TARGET_PARTICIPANT_REGEX}")
     model, device = load_model()
     results = analyze_eeg_files(model, device)
     plot_eeg_dashboard(results)
-

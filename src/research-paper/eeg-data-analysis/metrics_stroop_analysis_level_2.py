@@ -5,16 +5,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-# --- CONFIGURATION ---
+# configuration
 DATA_DIR = "data/level_2"
 CONDITIONS = ["Silent", "WhiteNoise", "Music"]
-DISCARD_SECONDS = 60  # MUST match the EEG script exactly to ensure time-alignment
-TARGET_PARTICIPANT_REGEX = r"^Andy$"  # Strict matching for 'Andy' only
+DISCARD_SECONDS = 60  # must match the EEG script
+TARGET_PARTICIPANT_REGEX = r"^Andy$"
 
-# --- PREPARATION ---
+# preparation
 processed_dfs = []
 summary_data = []
-# Dictionary to store dataframes grouped by condition for cleaner aggregation
+# dictionary to store dataframes grouped by condition
 data_buckets = {cond: [] for cond in CONDITIONS}
 
 # Compile regex for performance
@@ -24,13 +24,12 @@ print(
     f"Searching for Metrics data for participant matching: {TARGET_PARTICIPANT_REGEX}"
 )
 
-# --- 1. OPTIMIZED DATA LOADING ---
-# We iterate through the directory ONCE and sort files into buckets
+# iterate through the directory and sort files into buckets
 for file in os.listdir(DATA_DIR):
     if not file.endswith(".csv"):
         continue
 
-    # Convention: YYYYMMDD_HHMM_PARTICIPANT_DATATYPE_TEST_TESTCONDITION.csv
+    # convention: YYYYMMDD_HHMM_PARTICIPANT_DATATYPE_TEST_TESTCONDITION.csv
     parts = file.replace(".csv", "").split("_")
 
     if len(parts) < 6:
@@ -41,7 +40,7 @@ for file in os.listdir(DATA_DIR):
     test_type = parts[4]
     condition = parts[5]
 
-    # Apply strict filters: Participant, Type (Metrics), and Task (Stroop)
+    # apply strict filters: participant, type, and task
     if not regex_pattern.search(participant):
         continue
     if datatype != "Metrics" or test_type != "Stroop":
@@ -49,44 +48,42 @@ for file in os.listdir(DATA_DIR):
     if condition not in CONDITIONS:
         continue
 
-    # Load and process file
+    # load and process file
     file_path = os.path.join(DATA_DIR, file)
     df = pd.read_csv(file_path)
 
-    # Calculate relative time in seconds from the start of the recording
-    # We round to the nearest second to allow for easy grouping/averaging across runs
+    # calculate relative time in seconds from the start of the recording
+    # round to the nearest second to allow for easy grouping/averaging across runs
     df["seconds_elapsed"] = (
         ((df["timestampMs"] - df["timestampMs"].iloc[0]) / 1000).round().astype(int)
     )
 
-    # --- 2. SYNCHRONIZATION (SETTLING TIME) ---
-    # Slice off the first minute to match the EEG preprocessing discard period
+    # synchronization and settling time
     df = df[df["seconds_elapsed"] >= DISCARD_SECONDS].copy()
 
     if df.empty:
         continue
 
-    # Feature Engineering:
-    # Calculate keys per second (10s rolling average) and running error count
+    # calculate keys per second (10s rolling average) and running error count
     df["keys_per_sec"] = df["keys_pressed"].rolling(window=10, min_periods=1).mean()
     df["cumulative_errors"] = df["errors"].cumsum()
 
     data_buckets[condition].append(df)
 
-# --- 3. AGGREGATION & SUMMARY ---
+# aggregation and summary
 for cond, dfs in data_buckets.items():
     if not dfs:
         continue
 
-    # Combine all runs for this specific condition
+    # combine all runs for this specific condition
     combined = pd.concat(dfs)
 
-    # Create an 'Average Session' by grouping by the elapsed second
+    # create an average session by grouping by the elapsed second
     avg_df = combined.groupby("seconds_elapsed").mean().reset_index()
     avg_df["Condition"] = cond
     processed_dfs.append(avg_df)
 
-    # Summary Stats: Derived from the total volume of work in this condition
+    # summary stats derived from the total volume of work in this condition
     total_keys = combined["keys_pressed"].sum()
     total_errors = combined["errors"].sum()
 
@@ -109,7 +106,7 @@ if not processed_dfs:
 master_df = pd.concat(processed_dfs)
 summary_df = pd.DataFrame(summary_data)
 
-# --- 4. DASHBOARD GENERATION ---
+# dashboard generation
 sns.set_theme(style="darkgrid")
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 fig.suptitle(
@@ -118,9 +115,9 @@ fig.suptitle(
     fontweight="bold",
 )
 
-# Panel 1: Efficiency (Dual Axis - Volume vs. Accuracy)
+# panel 1: efficiency
 ax1 = axes[0]
-ax2 = ax1.twinx()  # Overlay accuracy line on top of volume bars
+ax2 = ax1.twinx()  # overlay accuracy line on top of volume bars
 
 sns.barplot(
     data=summary_df,
@@ -141,17 +138,17 @@ sns.lineplot(
 )
 
 ax1.set_title(f"Total Output (Post-{DISCARD_SECONDS}s)")
-ax2.set_ylim(80, 105)  # Keep accuracy focused on the high-performance range
-ax2.grid(False)  # Clean up overlapping grid lines
+ax2.set_ylim(80, 105)
+ax2.grid(False)
 
-# Panel 2: Throughput over Time
+# panel 2: throughput over time
 sns.lineplot(
     data=master_df, x="seconds_elapsed", y="keys_per_sec", hue="Condition", ax=axes[1]
 )
 axes[1].set_title("Cognitive Throughput (10s Rolling Avg)")
 axes[1].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
 
-# Panel 3: Error Accumulation
+# panel 3: error accumulation
 sns.lineplot(
     data=master_df,
     x="seconds_elapsed",
@@ -162,6 +159,5 @@ sns.lineplot(
 axes[2].set_title("Error Accumulation Over Time")
 axes[2].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
 
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust for suptitle
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.show()
-
