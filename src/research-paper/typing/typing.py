@@ -15,11 +15,6 @@ WORD_LIST_URL = "https://raw.githubusercontent.com/first20hours/google-10000-eng
 
 def fetch_words():
     """Fetches dictionary and caches locally."""
-    # if os.path.exists(WORD_CACHE_FILE):
-    #     with open(WORD_CACHE_FILE, "r") as f:
-    # filter out 1-2 letter words to maintain typing difficulty
-    # return [w.strip() for w in f.readlines() if len(w.strip()) >= 3]
-
     try:
         req = urllib.request.Request(
             WORD_LIST_URL, headers={"User-Agent": "Mozilla/5.0"}
@@ -54,6 +49,8 @@ class EEGTypingTest:
         self.word_right = ""
         self.target_word = ""
         self.typed_progress = ""
+        self.current_streak = 0
+        self.max_streak = 0
 
         # telemetry
         self.keys_pressed_this_sec = 0
@@ -64,22 +61,42 @@ class EEGTypingTest:
         self.csv_file = open(CSV_OUTPUT_FILE, mode="w", newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(
-            ["timestampMs", "keys_pressed", "errors", "total_correct"]
+            ["timestampMs", "keys_pressed", "errors", "total_words", "current_streak"]
         )
 
         # UI elements
+
+        # top instructions / timer
+        self.info_label = tk.Label(
+            self.root,
+            text="press SPACE to begin\ntype the center word; a typo wipes all words",
+            font=("Helvetica", 24),
+            bg="black",
+            fg="gray",
+        )
+        self.info_label.place(relx=0.5, rely=0.1, anchor="center")
+
+        # live streak counter (centered, between timer and words)
+        self.streak_label = tk.Label(
+            self.root,
+            text="",
+            font=("Helvetica", 64, "bold"),
+            bg="black",
+            fg="white",
+        )
+        self.streak_label.place(relx=0.5, rely=0.28, anchor="center")
+
         # left peripheral word. locked to screen center (relx=0.5) but pushed left 280px (x=-280)
-        # this still looks a bit janky but is more than good enough for what the test needs to do
         self.left_label = tk.Label(
             self.root, text="", font=("Courier New", 24), bg="black", fg="#444444"
         )
-        self.left_label.place(relx=0.5, x=-280, rely=0.4, anchor="e")
+        self.left_label.place(relx=0.5, x=-280, rely=0.5, anchor="e")
 
         # right peripheral word. locked to screen center, pushed right 280px
         self.right_label = tk.Label(
             self.root, text="", font=("Courier New", 24), bg="black", fg="#444444"
         )
-        self.right_label.place(relx=0.5, x=280, rely=0.4, anchor="w")
+        self.right_label.place(relx=0.5, x=280, rely=0.5, anchor="w")
 
         # center typing area. uses Text widget instead of Label to lock character width and prevent visual jitter
         self.center_text = tk.Text(
@@ -93,7 +110,7 @@ class EEGTypingTest:
             state="disabled",
             cursor="arrow",
         )
-        self.center_text.place(relx=0.5, rely=0.4, anchor="center")
+        self.center_text.place(relx=0.5, rely=0.5, anchor="center")
 
         # define text colors for the center widget
         self.center_text.tag_configure(
@@ -104,16 +121,6 @@ class EEGTypingTest:
         )  # white for remaining keys
         self.center_text.tag_configure("center", justify="center")
 
-        # bottom instructions
-        self.info_label = tk.Label(
-            self.root,
-            text="type the center word; a typo wipes all words",
-            font=("Helvetica", 14),
-            bg="black",
-            fg="gray",
-        )
-        self.info_label.place(relx=0.5, rely=0.8, anchor="center")
-
         # listen for any keyboard input
         self.root.bind("<Key>", self.handle_keypress)
         self.render_center_text("PRESS SPACE", "")
@@ -123,9 +130,14 @@ class EEGTypingTest:
         return int(time.time() * 1000)
 
     def start_test(self):
-        """Initializes timers, populates words, and starts telemetry loop."""
+        """Initializes timers, populates words, resets streaks, and starts telemetry loop."""
         self.is_running = True
         self.start_time = time.time()
+        self.current_streak = 0
+        self.max_streak = 0
+
+        self.streak_label.config(text="0")
+
         self.refresh_all_words()
         self.update_timer()
         self.log_telemetry()
@@ -170,8 +182,11 @@ class EEGTypingTest:
         self.render_center_text(remaining_word, self.typed_progress)
 
     def trigger_error(self):
-        """Executes sudden death penalty: logs error, flushes queue, flashes screen."""
+        """Executes sudden death penalty: logs error, flushes queue, breaks streak, flashes screen."""
         self.errors_this_sec += 1
+        self.current_streak = 0
+        self.streak_label.config(text="0")
+
         self.refresh_all_words()
 
         # visual penalty
@@ -180,6 +195,7 @@ class EEGTypingTest:
         self.center_text.configure(bg=error_bg)
         self.left_label.configure(bg=error_bg)
         self.right_label.configure(bg=error_bg)
+        self.streak_label.configure(bg=error_bg)
 
         # reset background to black after 100 milliseconds
         self.root.after(100, self.reset_background)
@@ -190,9 +206,10 @@ class EEGTypingTest:
         self.center_text.configure(bg="black")
         self.left_label.configure(bg="black")
         self.right_label.configure(bg="black")
+        self.streak_label.configure(bg="black")
 
     def handle_keypress(self, event):
-        """Processes keystrokes, tracks correctness, and triggers progression/errors."""
+        """Processes keystrokes, tracks correctness, updates streaks, and triggers progression/errors."""
         if not self.is_running and event.keysym == "space":
             self.start_test()
             return
@@ -211,9 +228,16 @@ class EEGTypingTest:
             self.typed_progress += event.char
             self.update_display()
 
-            # if word is fully typed (including space), advance the queue
+            # if word is fully typed (including space), advance the queue and increment word scores
             if len(self.typed_progress) == len(self.target_word):
                 self.total_words_completed += 1
+                self.current_streak += 1
+
+                # update max streak record
+                if self.current_streak > self.max_streak:
+                    self.max_streak = self.current_streak
+
+                self.streak_label.config(text=str(self.current_streak))
                 self.advance_queue()
         else:
             self.trigger_error()
@@ -230,6 +254,7 @@ class EEGTypingTest:
                 self.keys_pressed_this_sec,
                 self.errors_this_sec,
                 self.total_words_completed,
+                self.current_streak,
             ]
         )
         self.csv_file.flush()  # force write to disk to prevent data loss
@@ -262,9 +287,12 @@ class EEGTypingTest:
 
         self.left_label.config(text="")
         self.right_label.config(text="")
+        self.streak_label.config(text="")  # hide live streak
+
         self.render_center_text("TEST COMPLETE", "")
         self.info_label.config(
-            text=f"total words: {self.total_words_completed}\ndata saved to {CSV_OUTPUT_FILE}."
+            text=f"total words: {self.total_words_completed} | longest streak: {self.max_streak}\n"
+            f"data saved to {CSV_OUTPUT_FILE}."
         )
 
 
@@ -277,3 +305,4 @@ if __name__ == "__main__":
     root.attributes("-topmost", True)
     root.after_idle(root.attributes, "-topmost", False)
     root.mainloop()
+
