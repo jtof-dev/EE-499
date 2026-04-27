@@ -20,7 +20,7 @@
 
 \begin{document}
 
-\title{title}
+\title{Measuring the Effects of White Noise and Music on Anxiety Level Using a Commerical EEG}
 
 \author{Andy Babcock \\
     \textit{Steve Sanghi College of Engineering, Northern Arizona University} \\
@@ -35,23 +35,18 @@ text
 \end{abstract}
 
 \begin{IEEEkeywords}
-Anxiety relief, EEG, electroencephalography, white noise, acoustic therapy.
+Anxiety relief, EEG, electroencephalography, white noise, music.
 \end{IEEEkeywords}
 
-\section{Introduction}
 Anxiety and anxiety disorders are one of the most prevalent mental health conditions, predominately affecting youth and young adults, ages 10-24~\cite{bieRisingGlobalBurden2024}. In the past 35 years, anxiety disorders have increased by 52\% among adolescents and young adults. Daily anxiety affects nearly all parts of life, and is especially disruptive when under a high cognitive load. A 2007 study examined how anxiety impairs efficient cognitive functioning by taking attention away from the task at hand and instead focusing on the source of the anxiety~\cite{eysenckAnxietyCognitivePerformance2007}. However, the overall quality of performance does not neccessarily suffer, depending on compensatory stragegies used, like intentionally mentally working harder than neccesary. One strategy that requires less intentional mental application is playing white noise: a 2025 study examined how the anxiety levels of college students undergoing Cognitive Behavioral Therapy (CBT) were changed by white noise~\cite{liEffectWhiteNoise2025}. This study focuses on the difference in anxiety, depression, and sleep quality when only undergoing CBT, and while also listening to white noise in therapy. CBT represents a different dynamic to test-taking, but shares some qualities, such as therapy being an innate stessor, which can compound with external stressors (i.e.: needing to set boundaries with family). Anxiety levels in test-taking can be be monitored for changes from external factors like white noise or music using an Electroencephalogram (EEG) to measure changes in brain activity which is correlated to anxiety.
-
-% ==========
-% LIT REVIEW
-% ==========
 
 \section{Literature Review}
 \subsection{White Noise and Cognitive Load}
 A 2022 paper examines the effect of white noise on anxiety in operating room staff~\cite{ShahrokhiShabnam2022Teow}. Operating rooms share many similarities with test-taking, presenting both inherent stressors (successfully operating on another human) and external stressors (an expectation for the staff to do their jobs well and quickly). Anxiety reduces performance at work, so any simple solution that could potentially decrease anxiety would represent a painless way to improve performance. Noise is an inherent source of anxiety, which disproportionately affects operating rooms more than other medical environments thanks to numerous pieces of loud equipment. Therefore any distraction from that noise could reduce anxiety as well. Previous studies found that music significantly reduces stress, but also reduces the surgeon's auditory processing~\cite[p.~2]{WayT.JustinMD2013EoNo}. A potential middle ground that addresses this issue are less audible, muffled sounds that draw less attention than music would. Thus, the study chose white noise from a suction machine, which is already commonly used in operating rooms.
 
-The paper tests this hypothesis with a single-blind, crossover clinical trial on staff conducting cesarean sections, both with and without white noise from a suction machine. To test for differences in anxiety, the study measured hemodynamic parameters for the physical signs of anxiety, and used the Spielberger State-Trait Anxiety Inventory to measure anxiety level~\cite[pg.~1]{ShahrokhiShabnam2022Teow}. However, the study found no significant difference in anxiety whether the suction machine was running or not. The paper theorized that meaningless sounds like white noise are adapted to in the same way as other operating room noises, reducing its impact~\cite[pg.~3]{ShahrokhiShabnam2022Teow}.
+The paper tests this hypothesis with a single-blind, crossover clinical trial on staff conducting cesarean sections, both with and without white noise from a suction machine. To test for differences in anxiety, the study measured hemodynamic parameters for the physical signs of anxiety, and used the Spielberger State-Trait Anxiety Inventory to measure anxiety level~\cite[pg.~1]{ShahrokhiShabnam2022Teow}. However, the study found no significant difference in anxiety whether the suction machine was running or not. The paper theorized that meaningless sounds like white noise are adapted to in the same way as other operating room noises, reducing its impact~\cite[pg.~3]{ShahrokhiShabnam2022Teow}. While these findings are inconclusive, there may be nuance lost in the somewhat chaotic setting of an operating room (chaotic in terms of multiple people talking, multiple sound sources, and a tangible source of high anxiety). 
 
-% add papers on the effect of white noise
+When isolating study participants with fewer uncontrollable variables, white noise was found to either notably increase sensory overload or to act as a sedative on the brain, likely depending on each individual's mental state and white noise intensity. In the former scenario, participants were tasked with folding a piece of paper into various configurations and difficulties, while introducing up to eight different conditions to mentally exhaust the participant~\cite{marzollaImpactNoiseExposure2024}. The study found that sensory overload generally increased as more conditions were introduced, with white noise having the most signficant impact. However, the assesed level of sensory overload did not effect the participant's performance on the tasks, only their mental state. Alternatively, white noise can have a sedative effect on the prefrontal cortex, which presents as a calming effect~\cite{zhangSedativeEffectWhite2025}. This study differs from the previous two in that the participants were tested in calm, consistent environments, with no test or goal during the experiment aside from sitting in silence or listening to white noise. This format allowed for specific analysis of how white noise causes mental changes, but these positive effects may not be seen under high cognitive loads and anxiety levels.
 
 \section{Methods of Measuring Anxiety with an Electroencephalogram}
 
@@ -88,7 +83,7 @@ Using a wearable EEG that measures stress, we will test these claims by repeated
 
 % possibly a small conclusion
 
-\section{Methodology}
+\section{Device Design}
 
 % =============
 % device design
@@ -139,56 +134,12 @@ For the physical wiring, the MindWave Mobile 2 only supports Bluetooth, with abo
 %  methods plan
 % =============
 
-\section{Study Methods}
-Expanding upon last week's initial device design, much more detail on the specific methods is needed to properly focus this assignment. Previously, the tentative plan was to use a consumer wearable electroencephalogram (EEG) to measure anxiety levels during test-taking. The EEG selected is the NeuroSky MindWave Mobile 2, but the selection of test-taking proved a poor match for the scope of available participants for this study. With the main participants of any study conducted being myself and Cameron Brebner, it was not feasible to create an extended bank of test questions that would provide a difficult challenge and naturally induce anxiety. Instead, adapting the Trier Social Stress Test (TSST) to work between two people is much more achievable~\cite{kirschbaum_pirke_hellhammer_1993}. TSST traditionally was a way to induce anxiety in participants during an anticipation period and a test period though creating, then giving, a presentation of a random topic. However, at the end of the anticipation period (creating the presentation), the notes would be unexpectedly taken away, and the participant forced to give the 5-minute presentation blind. While this testing format works with fewer people, it can be adjusted and scaled to work with only two participants. Each of the two participants will create presentation notes and accompanying slides on something they are knowledgeable in, and the other participant will present on that topic to the first participant. Then, at a random time during the presentation, the notes will be taken away, and the presenter forced to finish the presentation using only what is on the slides themselves.
+\section{Methods Plan}
 
-It is difficult to properly re-create TSST's anticipation period with a small number of participants, and no dedicated judges to add pressure onto the participants while creating presentations. Currently, this step does not induce anxiety aside from both participants knowing that they will need to trade presentations. However, it is difficult to induce anxiety without it being artificial, like playing stressful or unsettling music. However, taking EEG measurements during this phase can instead provide baseline brainwave readings while working in a low-stress environment. The slides would be created on a laptop which could be plugged into a projector or TV, while the notes written down on paper or printed out, making it easy to take them away later.
+% define the terms of anxiety levels and the tests used to target each level, with short(er) justifications for each
+% workshop the below probably
 
-For the equivalent of TSST's test period, trading slide-decks and presenting blind mimics some of the induced stress from the original test. However, the participant giving the presentation will also be given the presentation notes at the beginning of the 5-minute presentation (5 minutes being chosen as an uncomfortable, but not completely unreasonable amount of time to present; also, because that is what TSST uses). This format loses TSST's surprise factor of the participant losing their notes at the beginning of the presentation, so it is added back in the form of taking away the presenting notes after a random amount of time. This reintroduces an unknown variable, even with prior knowledge, and creates two separate scenarios to measure anxiety under. While presenting with notes, it is stressful but possible thanks to said notes. After taking them away, the presenter is in a similar situation to the presenter from the TSST test, forced to present on something they are not comfortable with while not having notes.
-
-If this study could be scaled up to a larger number of participants, it would be much more practical to use TSST as it was initially created, as the increased number of participants allows for it to run smoothly. However, this structure allows for a middle-ground to induce and measure anxiety with a small number of participants.
-
-\section{Collecting Data}
-During both phases, both participants will wear the EEG to record brain activity (for the preparation section, both participants can record brain activity by preparing slides and notes one at a time). The MindWave Mobile 2 records all of the data needed for anxiety analysis, as shown in Table~\ref{tab:eegid_brainwaves}. To record this data, the headset will be paired to a smartphone, and the data synced post-hoc to a laptop to perform data analysis. The chosen phone is a Motorola Moto X4, as it is about the same age as the headset and companion app, eegID~\cite{gsm_moto_x4_2017,neurosky2026eegid}. When attempting to install eegID on modern smartphones, there are significant issues with installing the older mobile app, and with reliably pairing the headset, which uses an older Bluetooth version. After recording brain activity through eegID, the CSV file is synced to an external computer for analysis, likely using KDE Connect to send the file to a paired computer~\cite{kde_connect_2026}.
-
-All of the collected bands contain useful information on various components of anxiety. Notably, the Beta band can be subdivided into multiple categories associated with varying levels of anxiety, from none, slight, mild, moderate, and severe anxiety~\cite{ChatterjeeDebatri2023Doms}. Additionally, Theta waves are correlated with relaxation, and can become erratic while under stress~\cite{neurohealth_2019}. Gamma waves can also indicate agitation when the brain is over-aroused and highly anxious. Lastly, Alpha waves indicate a lack of anxiety, so unstable Alpha waves would indicate an anxiety response. There is a multitude of interesting literature on how to interpret specific bands of frequencies, and how to compare them to others, like Wei et al's study on how anxiety shapes theta band activity~\cite{wei_sun_long_2025}. However, adding much beyond a simple 4-level anxiety classification with some extra nuance and context from other brain activity would likely be beyond the scope of this study.
-
-To apply these brainwave categorizations, relatively simple python scripting will suffice. Some of the more nuanced indicators, like disturbances in Alpha waves, may require comparing the variance in stressful and stress-free data, but the main classifications done will be relatively simple. The main hurdle will be accounting for error, from both the headset being cheap and possibly imprecise relative to medical-grade EEGs, and from the readings being taken through skin and bone. Chatterjee's study on training an AI on existing anxiety classifications from brain activity may prove a vital component while analyzing data, as the data may be somewhat unusable in the state it gets collected in~\cite{ChatterjeeDebatri2023Doms}.
-
-\begin{table*}[t]
-    \centering
-    \caption{eegID Telemetry Fields and Correlated Brainwave States~\cite{neurosky2026eegid,neurohealth_2019}}
-    \label{tab:eegid_brainwaves}
-    \begin{tabularx}{\textwidth}{l l X}
-        \hline
-        \textbf{eegID Field} & \textbf{Frequency Range} & \textbf{Description and Meaning} \\
-        \hline
-        PoorSignal & N/A & A hardware metric indicating the quality of the sensor contact and signal integrity. \\
-        EEG Raw Value & N/A & Unfiltered analog values captured directly from the EEG sensor. \\
-        EEG Raw Value Volts & N/A & The raw EEG data scaled and converted into standard voltage units. \\
-        Attention Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's focus, concentration, and directed mental effort. \\
-        Meditation Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's level of mental calmness and relaxation. \\
-        Blink Strength & N/A & A metric that detects eye blinks and quantifies their relative physical intensity. \\
-        Delta & 1--3 Hz & Associated with deep, dreamless sleep, trance, and the unconscious mind. Represents a decreased awareness of the physical world. \\
-        Theta & 4--7 Hz & Linked to intuition, creativity, daydreaming, internal focus, and spiritual awareness. Reflects the state between wakefulness and sleep. \\
-        Alpha Low & 8--9 Hz & Correlates to an inner-awareness of self, mind/body integration, and balance. \\
-        Alpha High & 10--12 Hz & Associated with centering, healing, and bridging the conscious to the subconscious. Promotes mental resourcefulness and calmness. \\
-        Beta Low & 13--17 Hz & Reflects a state of being relaxed yet focused, integrated, and actively thinking while remaining aware of surroundings. \\
-        Beta High & 18--30 Hz & Indicates high alertness and mental activity (e.g., math, planning), and general activation of mind/body functions, but can also reflect agitation. \\
-        Gamma Low & 31--40 Hz & Consolidates information from different areas of the brain for simultaneous processing. Associated with alertness, good memory, or potential agitation. \\
-        Gamma Mid & 41--50 Hz & Functions similarly to Gamma Low in consolidating rapid, simultaneous processing across brain regions; also indicates high alertness or agitation. \\
-        \hline
-    \end{tabularx}
-\end{table*}
-
-\section{Results and Discussion}
-
-% ========
-% ANALYSIS
-% ========
-
-\section{Introduction}
-This analysis will make little sense if reading after the previous assignments, as the majority of this wearable project has been re-done in the past two weeks. Cameron and I are using a NeuroSky Mindwave Mobile 2 to measure anxiety and cognitive load under various stress levels and auditory conditions. To achieve this, we adapted Peplau's definitions of anxiety levels~\ref{tab:peplau_anxiety_1952} into broader definitions that apply to general cognitive load. In our case, we defined Level 1 as a calm resting state, like meditating or reading. Level 2 was a cognitive load with a punishment for failure: taking a typing test where a mistake resets the string of words, or taking a Stroop test. The Stroop test traditionally shows one of four words, red, green, blue, or yellow, in one of those colors, and the participant must say the color of the word, not the word (i.e.: the word is red, and that text is green)~\cite{MacLeodColinM1991HaCo}. This test was adapted to instead press one of four buttons when a colored word appeared on-screen to remove the talking element. Level 3 would involve a task too difficult to properly do in the allotted time with a significant punishment for failure. However, Cameron and I are still deliberating between testing additional auditory conditions, like a loud room, podcast, or unfamiliar music, or testing the current conditions, white noise and familiar music, with a level 3 task.
+Cameron and I are using a NeuroSky Mindwave Mobile 2 to measure anxiety and cognitive load under various stress levels and auditory conditions. To achieve this, we adapted Peplau's definitions of anxiety levels~\ref{tab:peplau_anxiety_1952} into broader definitions that apply to general cognitive load. In our case, we defined Level 1 as a calm resting state, like meditating or reading. Level 2 was a cognitive load with a punishment for failure: taking a typing test where a mistake resets the string of words, or taking a Stroop test. The Stroop test traditionally shows one of four words, red, green, blue, or yellow, in one of those colors, and the participant must say the color of the word, not the word (i.e.: the word is red, and that text is green)~\cite{MacLeodColinM1991HaCo}. This test was adapted to instead press one of four buttons when a colored word appeared on-screen to remove the talking element. Level 3 would involve a task too difficult to properly do in the allotted time with a significant punishment for failure. However, Cameron and I are still deliberating between testing additional auditory conditions, like a loud room, podcast, or unfamiliar music, or testing the current conditions, white noise and familiar music, with a level 3 task.
 
 The backbone of our EEG brainwave analysis is a recently developed EEG model, SingLEM~\cite{SukhbaatarJamiyan2025SSLE}. This general-purpose pre-trained model was trained on 357,000 hours of single-channel EEG data, and handles the large amount of noise inherent to single-channel EEG readings, like blinks and eye movement.
 
@@ -217,7 +168,43 @@ The backbone of our EEG brainwave analysis is a recently developed EEG model, Si
 \vspace{1ex}
 \end{table}
 
-\section{Analysis}
+\subsection{Collecting Data}
+
+% run through all of the tests, ways to norrmalize the data, etc
+% make sure to mention that the counter wasn't included until part-way through testing!
+
+\subsection{Methods of Measuring Anxiety}
+
+% examine in detail the specifics of SingLEM and simplier classifiers for measuring anxiety
+
+\begin{table*}[t]
+    \centering
+    \caption{eegID Telemetry Fields and Correlated Brainwave States~\cite{neurosky2026eegid,neurohealth_2019}}
+    \label{tab:eegid_brainwaves}
+    \begin{tabularx}{\textwidth}{l l X}
+        \hline
+        \textbf{eegID Field} & \textbf{Frequency Range} & \textbf{Description and Meaning} \\
+        \hline
+        PoorSignal & N/A & A hardware metric indicating the quality of the sensor contact and signal integrity. \\
+        EEG Raw Value & N/A & Unfiltered analog values captured directly from the EEG sensor. \\
+        EEG Raw Value Volts & N/A & The raw EEG data scaled and converted into standard voltage units. \\
+        Attention Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's focus, concentration, and directed mental effort. \\
+        Meditation Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's level of mental calmness and relaxation. \\
+        Blink Strength & N/A & A metric that detects eye blinks and quantifies their relative physical intensity. \\
+        Delta & 1--3 Hz & Associated with deep, dreamless sleep, trance, and the unconscious mind. Represents a decreased awareness of the physical world. \\
+        Theta & 4--7 Hz & Linked to intuition, creativity, daydreaming, internal focus, and spiritual awareness. Reflects the state between wakefulness and sleep. \\
+        Alpha Low & 8--9 Hz & Correlates to an inner-awareness of self, mind/body integration, and balance. \\
+        Alpha High & 10--12 Hz & Associated with centering, healing, and bridging the conscious to the subconscious. Promotes mental resourcefulness and calmness. \\
+        Beta Low & 13--17 Hz & Reflects a state of being relaxed yet focused, integrated, and actively thinking while remaining aware of surroundings. \\
+        Beta High & 18--30 Hz & Indicates high alertness and mental activity (e.g., math, planning), and general activation of mind/body functions, but can also reflect agitation. \\
+        Gamma Low & 31--40 Hz & Consolidates information from different areas of the brain for simultaneous processing. Associated with alertness, good memory, or potential agitation. \\
+        Gamma Mid & 41--50 Hz & Functions similarly to Gamma Low in consolidating rapid, simultaneous processing across brain regions; also indicates high alertness or agitation. \\
+        \hline
+    \end{tabularx}
+\end{table*}
+
+% rewrite to make the tone a bit more theoretical, and add more info on the different methods of data analysis
+
 SingLEM was finetuned using 30 minutes of each Level 1 and Level 2 data taken in silence, resulting in 82.9\% accuracy after 6 Epochs~\cite{jtof-dev_EE-499_2026}. The model was finetuned on 50 Epochs, using 80\% of the collected data to train and the remaining 20\% to validate that the model is not overfitting at the end of each Epoch. Then, after 50 Epochs, the generation with the highest accuracy and lowest loss between the training and validation is selected as the best-fit fine-tune. To get usable results, our data was filtered through multiple filters to eliminate external electrical noise, downsampled to match how SingLEM was trained, and the baseline calibrated through Z-Score normalization. The Z-Score normalization ensures that the model is 'centered' on our data, rather than comparing it to the baseline it found during pre-training. Lastly, the pre-trained SingLEM is unfrozen so it can learn during the fine-tune, but at a slow learning rate (\(1e^-5)\), while classification portion of the model is trained much faster (\(1e^-3)\). 
 
 After fine-tuning SingLEM on Level 1 and 2 data taken in silence, the Level 2 Stroop test was repeated with white noise playing and with familiar music. The model we trained is a binary classifier, and only outputs a 0 or a 1. To get detailed information on how close to Level 1 or 2 the participant is over time, the Expected Value is calculated over time~\ref{eq:expected_level}. This methodology avoids the sometimes inaccurate outputs from only using a softmax.
@@ -235,30 +222,6 @@ Where:
     \item $P_2$ is the Softmax probability assigned to Class 2.
     \item $V_2$ is the numerical value assigned to Level 2 ($V_2 = 2.0$).
 \end{itemize}
-
-Comparing the three auditory conditions shows an increase in total average correct answers and average keys pressed, with silence being the lowest and music the highest~\ref{tab:participant_andy_metrics_total}. However, the overall accuracy decreased during the music tests, with silence being the most accurate. It is possible that the increased anxiety level in the silent and white noise conditions cause enough second-guessing and slowdowns to prevent additional errors that music did not~\ref{fig:graph1}.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Aggregated Stroop test metrics for Andy. Data reflects total averages per run across different auditory conditions~\cite{jtof-dev_EE-499_2026}.}
-    \label{tab:participant_andy_metrics_total}
-    \resizebox{\linewidth}{!}{%
-        \begin{tabular}{l c c c c c c}
-            \toprule
-            \textbf{Condition} & \textbf{Runs} & \textbf{Avg Keys} & \textbf{Avg Correct} & \textbf{Avg Errors} & \textbf{Keys/Sec} & \textbf{Accuracy (\%)} \\
-            \midrule
-            Silent     & 3 & 399.7 & 376.7 & 23.0 & 1.34 & 94.25 \\
-            WhiteNoise & 2 & 432.5 & 403.0 & 29.5 & 1.45 & 93.18 \\
-            Music      & 2 & 491.0 & 448.0 & 43.0 & 1.65 & 91.24 \\
-            \bottomrule
-        \end{tabular}%
-    }
-\end{table}
-
-\section{Conclusion}
-In order of conditions from silent, white noise, to music, overall number of keys pressed and correct answers increased. However, accuracy decreased as the input speed increased, with the music condition resulting in 3\$ worse accuracy than the silent condition.
-
-This dataset and analysis serves well as an initial baseline for comparing anxiety levels across different auditory conditions. However, the dataset will certainly need some Level 3 data to better ground the results, more data across all collected categories, and likely more auditory contitions. While the model appears to fine-tune well, 30 minutes of data is likely close to the minimum amount of data needed to produce a functional fine-tune. Adding more data, and preferably doubling it to 60 minutes of each, would increase the quality of the fine-tune. Additionally, there are only two five-minute samples on taking the Stroop test under various conditions, making the dataset small enough that random variance could effect the overall result. Lastly, though there was an increase in overall output in the familiar music samples, that may have been from growing more comfortable with the test itself; interleaving various conditions during testing would likely fix this.
 
 \begin{figure*}[p] % forces a dedicated page
     \begin{minipage}[c][0.48\textheight][c]{\linewidth}
@@ -328,12 +291,41 @@ This dataset and analysis serves well as an initial baseline for comparing anxie
     \end{minipage}
 \end{figure*}
 
+% ========
+% ANALYSIS
+% ========
+
+\section{Analysis}
+
+% focus on the most important concrete results - did sounds increase or decrease stress and performance, and give some graphs on that
+
+Comparing the three auditory conditions shows an increase in total average correct answers and average keys pressed, with silence being the lowest and music the highest~\ref{tab:participant_andy_metrics_total}. However, the overall accuracy decreased during the music tests, with silence being the most accurate. It is possible that the increased anxiety level in the silent and white noise conditions cause enough second-guessing and slowdowns to prevent additional errors that music did not~\ref{fig:graph1}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Aggregated Stroop test metrics for Andy. Data reflects total averages per run across different auditory conditions~\cite{jtof-dev_EE-499_2026}.}
+    \label{tab:participant_andy_metrics_total}
+    \resizebox{\linewidth}{!}{%
+        \begin{tabular}{l c c c c c c}
+            \toprule
+            \textbf{Condition} & \textbf{Runs} & \textbf{Avg Keys} & \textbf{Avg Correct} & \textbf{Avg Errors} & \textbf{Keys/Sec} & \textbf{Accuracy (\%)} \\
+            \midrule
+            Silent     & 3 & 399.7 & 376.7 & 23.0 & 1.34 & 94.25 \\
+            WhiteNoise & 2 & 432.5 & 403.0 & 29.5 & 1.45 & 93.18 \\
+            Music      & 2 & 491.0 & 448.0 & 43.0 & 1.65 & 91.24 \\
+            \bottomrule
+        \end{tabular}%
+    }
+\end{table}
 
 % ====================
 % RESULTS & CONCLUSION
 % ====================
 
-text
+\section{Results and Conclusion}
+
+% compare my results to the papers I have cited in the paper and discuss whether or not those results are actually significant in any way
+% then conclude
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

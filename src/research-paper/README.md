@@ -9,6 +9,8 @@ git submodule update --init --recursive
 
 ## games
 
+- NOTE: the numbered streak feature was added on April 27th, and data taken before that did not have that element
+
 ### `stroop/` 
 
 - a simple local implementation of the stroop test, using `hjkl` keybinds (because I am a nerd!)
