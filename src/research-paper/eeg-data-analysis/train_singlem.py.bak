@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import sys
 
@@ -21,8 +22,10 @@ PRETRAINED_WEIGHTS_PATH = "SingLEM/weights/singlem_pretrained.pt"
 EEG_COLUMN = "eegRawValueVolts"
 
 BATCH_SIZE = 32
-EPOCHS = 50
+EPOCHS = 20
 DISCARD_SECONDS = 60
+# is_clean = poor_signal < POOR_SIGNAL, so keep it at 1 or higher
+POOR_SIGNAL = 45
 
 # set to None to include all participants, or use a regex string like r"P0[1-5]"
 TARGET_PARTICIPANT_REGEX = r"^Andy$"
@@ -53,19 +56,18 @@ def preprocess_eeg(raw_volts):
 
 
 class BinaryEEGDataset(Dataset):
-    def __init__(self, mode="train", participant_regex=None):
+    def __init__(self, mode="train", participant_regex=None, seed=42):
         self.samples = []
         self.labels = []
         self.mode = mode
 
-        # mapping folder structures to binary classes
-        # 0 = low anxiety, 1 = high anxiety
         level_mapping = {1: 0, 2: 1}
-
         print(f"Loading Silent EEG data for {mode.upper()}...")
 
-        # compile regex once for performance if provided
         regex_pattern = re.compile(participant_regex) if participant_regex else None
+
+        # 1. Gather all valid files first
+        valid_files = []
 
         for level, py_class in level_mapping.items():
             folder = os.path.join(DATA_BASE_DIR, f"level_{level}")
@@ -76,95 +78,100 @@ class BinaryEEGDataset(Dataset):
                 if not file.endswith(".csv"):
                     continue
 
-                # expected format: YYYYMMDD_HHMM_PARTICIPANT_DATATYPE_TEST_TESTCONDITION.csv
                 parts = file.replace(".csv", "").split("_")
-
-                # ensure the filename actually conforms to the convention before parsing
                 if len(parts) >= 6:
                     participant_name = parts[2]
                     datatype = parts[3]
                     test_condition = parts[5]
                 else:
-                    continue  # skip files that don't match the expected naming structure
+                    continue
 
-                # apply filters
-                # condition and datatype filter
                 if datatype != "EEG" or test_condition != "Silent":
                     continue
 
-                # participant regex filter
                 if regex_pattern and not regex_pattern.search(participant_name):
                     continue
 
+                # Store the file path and its class
                 path = os.path.join(folder, file)
-                df = pd.read_csv(path)
+                valid_files.append((path, py_class, file))
 
-                # ensure required columns exist before processing
-                if EEG_COLUMN not in df.columns or "poorSignal" not in df.columns:
-                    continue
+        # 2. Shuffle and split the FILES (Session-level split)
+        # Using a fixed seed ensures 'train' and 'val' modes get non-overlapping splits
+        random.seed(seed)
+        random.shuffle(valid_files)
 
-                raw_volts = df[EEG_COLUMN].values
-                poor_signal = df["poorSignal"].values
+        split_idx = int(len(valid_files) * 0.8)
 
-                # settling logic
-                samples_to_discard = DISCARD_SECONDS * 512
+        if mode == "train":
+            target_files = valid_files[:split_idx]
+        elif mode == "val":
+            target_files = valid_files[split_idx:]
 
-                if len(raw_volts) <= samples_to_discard:
-                    if (
-                        mode == "train"
-                    ):  # prevent console spam by warning only on train pass
-                        print(
-                            f"warning: {file} is shorter than {DISCARD_SECONDS}s; skipping"
-                        )
-                    continue
+        # 3. Process only the assigned files for this split
+        for path, py_class, file_name in target_files:
+            df = pd.read_csv(path)
 
-                # slice off the first minute of data from both arrays
-                raw_volts = raw_volts[samples_to_discard:]
-                poor_signal = poor_signal[samples_to_discard:]
+            if EEG_COLUMN not in df.columns or "poorSignal" not in df.columns:
+                continue
 
-                # preprocess the whole continuous array at once to prevent edge-effect glitches that occur if you filter piece-by-piece
-                processed_eeg = preprocess_eeg(raw_volts)
+            raw_volts = df[EEG_COLUMN].values
+            poor_signal = df["poorSignal"].values
 
-                # chronological split
-                # 80% for training, 20% for validation
-                # splitting sequentially instead of randomly prevents highly correlated adjacent windows from bleeding across the train/val barrier.
-                split_idx_128 = int(len(processed_eeg) * 0.8)
-                split_idx_512 = int(len(poor_signal) * 0.8)
+            samples_to_discard = DISCARD_SECONDS * 512
 
+            if len(raw_volts) <= samples_to_discard:
                 if mode == "train":
-                    processed_eeg = processed_eeg[:split_idx_128]
-                    poor_signal = poor_signal[:split_idx_512]
-                elif mode == "val":
-                    processed_eeg = processed_eeg[split_idx_128:]
-                    poor_signal = poor_signal[split_idx_512:]
+                    print(
+                        f"warning: {file_name} is shorter than {DISCARD_SECONDS}s; skipping"
+                    )
+                continue
 
-                # window rejection logic
-                window_size_128 = 5 * 128
-                step_size_128 = 128  # slide by 1s (overlapping windows)
+            raw_volts = raw_volts[samples_to_discard:]
+            poor_signal = poor_signal[samples_to_discard:]
 
-                # slide through the 128Hz array
-                for start_128 in range(
-                    0, len(processed_eeg) - window_size_128, step_size_128
-                ):
-                    start_512 = start_128 * 4
-                    window_size_512 = window_size_128 * 4  # 2560 samples
+            processed_eeg = preprocess_eeg(raw_volts)
 
-                    signal_window = poor_signal[start_512 : start_512 + window_size_512]
+            # NOTE: We removed the chronological 80/20 array split here,
+            # because the entire file now belongs strictly to either train or val!
 
-                    # if the headset lost connection/dropped quality at ANY ms in this window, throw it out
-                    if np.any(signal_window > 45):
-                        continue
+            window_size_128 = 5 * 128
+            step_size_128 = 128
 
-                    # if the signal is perfectly clean, grab the EEG window and format it for SingLEM
-                    window = processed_eeg[start_128 : start_128 + window_size_128]
+            is_clean = poor_signal < POOR_SIGNAL
 
-                    # reshape into tokens: 5 seconds -> 5 tokens of 128 samples each
-                    reshaped = window.reshape(5, 128)
+            clean_blocks = []
+            current_start = None
 
-                    self.samples.append(reshaped)
-                    self.labels.append(py_class)
+            for i, clean in enumerate(is_clean):
+                if clean and current_start is None:
+                    current_start = i
+                elif not clean and current_start is not None:
+                    clean_blocks.append((current_start, i))
+                    current_start = None
 
-        print(f"loaded {len(self.samples)} clean {mode.upper()} windows")
+            if current_start is not None:
+                clean_blocks.append((current_start, len(is_clean)))
+
+            for start_512, end_512 in clean_blocks:
+                start_128 = start_512 // 4
+                end_128 = end_512 // 4
+
+                if (end_128 - start_128) >= window_size_128:
+                    for window_start in range(
+                        start_128, end_128 - window_size_128 + 1, step_size_128
+                    ):
+                        window = processed_eeg[
+                            window_start : window_start + window_size_128
+                        ]
+                        reshaped = window.reshape(5, 128)
+
+                        self.samples.append(reshaped)
+                        self.labels.append(py_class)
+
+        print(
+            f"loaded {len(self.samples)} clean {mode.upper()} windows from {len(target_files)} files"
+        )
 
     def __len__(self):
         return len(self.samples)
@@ -274,7 +281,7 @@ def train_model(participant_regex=None):
         avg_val_loss = val_loss / len(val_loader)
 
         print(
-            f"Epoch [{epoch + 1:03d}/{EPOCHS}] | "
+            f"Epoch [{epoch + 1:02d}/{EPOCHS}] | "
             f"Train Loss: {avg_train_loss:.4f}, Acc: {train_acc:.1f}% | "
             f"Val Loss: {avg_val_loss:.4f}, Acc: {val_acc:.1f}%"
         )
