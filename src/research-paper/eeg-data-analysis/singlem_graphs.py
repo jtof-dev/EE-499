@@ -17,13 +17,16 @@ from SingLEM.model import Config, EEGEncoder
 # configuration
 DATA_DIR = "data/level_2"
 MODEL_WEIGHTS_PATH = "singlem_binary_head.pth"
+PRETRAINED_WEIGHTS_PATH = "SingLEM/weights/singlem_pretrained.pt"
 TARGET_TEST = "Stroop"
-CONDITIONS = ["Silent", "WhiteNoise", "Music"]
+
+# updated: added musicnl to the conditions to compare
+CONDITIONS = ["Silent", "WhiteNoise", "Music", "MusicNL"]
 EEG_COLUMN = "eegRawValueVolts"
 
 TARGET_PARTICIPANT_REGEX = r"^Andy$"
 
-# DSP constants
+# dsp constants
 ORIGINAL_FS = 512
 TARGET_FS = 128
 WINDOW_SECONDS = 5
@@ -31,17 +34,18 @@ TOKENS_PER_WINDOW = WINDOW_SECONDS
 SAMPLES_PER_TOKEN = TARGET_FS
 DISCARD_SECONDS = 60  # must match training to ensure we analyze the same brain state
 
-# regex to filter for specific data files
+# updated: regex to include musicnl
 FILENAME_REGEX = re.compile(
-    r"^\d{8}_\d{4}_(?P<participant>[A-Za-z0-9]+)_EEG_(?P<test>Stroop|Typing)_(?P<condition>Silent|WhiteNoise|Music)\.csv$",
+    r"^\d{8}_\d{4}_(?P<participant>[A-Za-z0-9]+)_EEG_(?P<test>Stroop|Typing)_(?P<condition>Silent|WhiteNoise|Music|MusicNL)\.csv$",
     re.IGNORECASE,
 )
 
 
 def preprocess_eeg(raw_volts):
     """
-    Standard SingLEM preprocessing:
-    Isolates 0.5-50Hz, removes 60Hz hum, decimates by 4x, and Z-normalizes.
+    standard SingLEM preprocessing.
+    synchronized with train_singlem.py: isolates 0.5-50hz, removes 60hz hum,
+    decimates by 4x, and scales by 1e4 (z-normalization removed to match training).
     """
     b, a = signal.butter(4, [0.5, 50.0], btype="bandpass", fs=ORIGINAL_FS)
     filtered = signal.filtfilt(b, a, raw_volts)
@@ -51,23 +55,39 @@ def preprocess_eeg(raw_volts):
 
     resampled = signal.decimate(filtered, q=4)
     scaled = resampled * 1e4
-    normalized = (scaled - np.mean(scaled)) / (np.std(scaled) + 1e-8)
-    return normalized
+
+    return scaled
 
 
-# model architecture
+# updated model architecture to completely match train_singlem.py
 class BinaryAnxietyClassifier(nn.Module):
-    def __init__(self, num_classes=2):
-        super(BinaryAnxietyClassifier, self).__init__()
+    def __init__(self, unfreeze_last_n=0):
+        super().__init__()
         config = Config()
         config.mask_prob = 0.0
         self.feature_extractor = EEGEncoder(config)
+
+        # optionally load pretrained backbone weights if analyzing without the fine-tuned dict
+        if os.path.exists(PRETRAINED_WEIGHTS_PATH):
+            self.feature_extractor.load_state_dict(
+                torch.load(
+                    PRETRAINED_WEIGHTS_PATH, map_location="cpu", weights_only=True
+                )
+            )
+
+        for p in self.feature_extractor.parameters():
+            p.requires_grad = False
+
+        if unfreeze_last_n > 0:
+            params = list(self.feature_extractor.parameters())
+            for p in params[-unfreeze_last_n:]:
+                p.requires_grad = True
 
         self.classifier = nn.Sequential(
             nn.Linear(5 * 16, 64),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(64, num_classes),
+            nn.Linear(64, 2),
         )
 
     def forward(self, x):
@@ -77,14 +97,17 @@ class BinaryAnxietyClassifier(nn.Module):
 
 
 def load_model():
-    """Initializes model and attempts to load trained weights."""
+    """initializes model and attempts to load trained weights."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = BinaryAnxietyClassifier(num_classes=2)
+
+    # instantiate with the new training script signature
+    model = BinaryAnxietyClassifier(unfreeze_last_n=0)
+
     if os.path.exists(MODEL_WEIGHTS_PATH):
         model.load_state_dict(torch.load(MODEL_WEIGHTS_PATH, map_location=device))
-        print(f"loaded weights: {MODEL_WEIGHTS_PATH}")
+        print(f"loaded weights: {MODEL_WEIGHTS_PATH.lower()}")
     else:
-        print(f"warning: {MODEL_WEIGHTS_PATH} not found; using random weights")
+        print(f"warning: {MODEL_WEIGHTS_PATH.lower()} not found; using random weights")
 
     model.to(device)
     model.eval()  # critical: disables dropout/batchnorm for consistent inference
@@ -92,7 +115,7 @@ def load_model():
 
 
 def analyze_eeg_files(model, device):
-    """Parses files, applies participant filtering, and generates load predictions."""
+    """parses files, applies participant filtering, and generates load predictions."""
     raw_data = {cond: [] for cond in CONDITIONS}
     participant_filter = re.compile(TARGET_PARTICIPANT_REGEX)
 
@@ -143,7 +166,7 @@ def analyze_eeg_files(model, device):
             for start_128 in range(
                 0, len(processed_eeg) - window_size_128, step_size_128
             ):
-                # map 128Hz index back to 512Hz to check signal quality
+                # map 128hz index back to 512hz to check signal quality
                 start_512 = start_128 * 4
                 window_size_512 = window_size_128 * 4
 
@@ -200,46 +223,62 @@ def plot_eeg_dashboard(aggregated_results):
         return
 
     master_df = pd.concat(aggregated_results.values(), ignore_index=True)
-    summary_data = master_df.groupby("Condition")["smoothed_load"].mean().reset_index()
 
+    # map labels for academic formatting
+    condition_map = {
+        "Silent": "Silent (Control)",
+        "WhiteNoise": "White Noise",
+        "Music": "Lyrical Music",
+        "MusicNL": "Non-Lyrical Music",
+    }
+    master_df["Condition"] = master_df["Condition"].map(condition_map)
+
+    summary_data = master_df.groupby("Condition")["smoothed_load"].mean().reset_index()
+    participant_name = TARGET_PARTICIPANT_REGEX.strip("^$").capitalize()
     sns.set_theme(style="darkgrid")
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    fig.suptitle(
-        f"Neural Load Analysis: {TARGET_PARTICIPANT_REGEX.strip('^$')} ({TARGET_TEST})",
-        fontsize=16,
+
+    # figure 1: bar chart (global averages)
+    plt.figure(figsize=(10, 6))
+    sns.barplot(data=summary_data, x="Condition", y="smoothed_load", palette="magma")
+    plt.title(
+        f"Mean Predicted Cognitive Load: {participant_name} ({TARGET_TEST} Task)",
+        fontsize=14,
         fontweight="bold",
     )
+    plt.xlabel("Auditory Environmental Condition", fontsize=12)
+    plt.ylabel("Cognitive Load Index (1.0 - 2.0)", fontsize=12)
+    plt.ylim(1.0, 2.0)
+    plt.tight_layout()
 
-    # panel 1: bar chart (global averages)
-    sns.barplot(
-        data=summary_data, x="Condition", y="smoothed_load", ax=axes[0], palette="magma"
-    )
-    axes[0].set_title("Total Average Cognitive Load")
-    axes[0].set_ylabel("Anxiety Level(1.0-2.0)")
-    axes[0].set_ylim(1.0, 2.0)
-
-    # panel 2: timeline (fatigue and adaptation)
+    # figure 2: timeline (fatigue and adaptation)
+    plt.figure(figsize=(12, 6))
     sns.lineplot(
         data=master_df,
         x="seconds_elapsed",
         y="smoothed_load",
         hue="Condition",
-        ax=axes[1],
         linewidth=2.5,
         palette="magma",
     )
-    axes[1].set_title("Real-time Load (10s Moving Average)")
-    axes[1].set_xlabel("Seconds Since Start")
-    axes[1].set_ylabel("Smoothed Anxiety Level")
-    axes[1].set_xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
-    axes[1].set_ylim(1.0, 2.0)
+    plt.title(
+        f"Temporal Progression of Neural Load: {participant_name} ({TARGET_TEST} Task)",
+        fontsize=14,
+        fontweight="bold",
+    )
+    plt.xlabel("Time Elapsed (Seconds)", fontsize=12)
+    plt.ylabel("Smoothed Cognitive Load Index", fontsize=12)
+    plt.xlim(DISCARD_SECONDS, master_df["seconds_elapsed"].max())
+    plt.ylim(1.0, 2.0)
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    # position legend inside the plot area
+    plt.legend(title="Auditory Condition", loc="lower right", frameon=True)
+    plt.tight_layout()
+
     plt.show()
 
 
 if __name__ == "__main__":
-    print(f"initializing inference for participant: {TARGET_PARTICIPANT_REGEX}")
+    print(f"initializing inference for participant: {TARGET_PARTICIPANT_REGEX.lower()}")
     model, device = load_model()
     results = analyze_eeg_files(model, device)
     plot_eeg_dashboard(results)

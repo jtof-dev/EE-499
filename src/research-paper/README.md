@@ -21,8 +21,3 @@ git submodule update --init --recursive
 - a simple endless typing mode that resets on mistake
 - logs basic info on the 5-minute session to a `metrics.csv`
 
-### `n-back/`
-
-- a local implementation of the n-back game (remember a feed of recently seen letters and record when the current matches the Nth back letter)
-- logs basic info on the 5-minute session to a `metrics.csv`
-- this is a potential option for a level 3 game, but I have not been able to get myself stressed enough to make it work
