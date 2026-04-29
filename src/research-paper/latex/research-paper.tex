@@ -9,6 +9,7 @@
 
 \usepackage{cite}
 \usepackage{graphicx}
+\usepackage{caption}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{tabularx}
@@ -31,13 +32,13 @@
 
 \maketitle
 
-\begin{abstract}
-text
-\end{abstract}
-
-\begin{IEEEkeywords}
-Anxiety relief, EEG, electroencephalography, white noise, music.
-\end{IEEEkeywords}
+% \begin{abstract}
+% text
+% \end{abstract}
+%
+% \begin{IEEEkeywords}
+% Anxiety relief, EEG, electroencephalography, white noise, music.
+% \end{IEEEkeywords}
 
 Anxiety and anxiety disorders are one of the most prevalent mental health conditions, predominately affecting youth and young adults, ages 10-24~\cite{bieRisingGlobalBurden2024}. In the past 35 years, anxiety disorders have increased by 52\% among adolescents and young adults. Daily anxiety affects nearly all parts of life, and is especially disruptive when under a high cognitive load. A 2007 study examined how anxiety impairs efficient cognitive functioning by taking attention away from the task at hand and instead focusing on the source of the anxiety~\cite{eysenckAnxietyCognitivePerformance2007}. However, the overall quality of performance does not neccessarily suffer, depending on compensatory stragegies used, like intentionally mentally working harder than neccesary. One strategy that requires less intentional mental application is playing white noise: a 2025 study examined how the anxiety levels of college students undergoing Cognitive Behavioral Therapy (CBT) were changed by white noise~\cite{liEffectWhiteNoise2025}. This study focuses on the difference in anxiety, depression, and sleep quality when only undergoing CBT, and while also listening to white noise in therapy. CBT represents a different dynamic to test-taking, but shares some qualities, such as therapy being an innate stessor, which can compound with external stressors (i.e.: needing to set boundaries with family). Anxiety levels in test-taking can be be monitored for changes from external factors like white noise or music using an Electroencephalogram (EEG) to measure changes in brain activity which is correlated to anxiety.
 
@@ -239,19 +240,22 @@ Where:
     \item $\beta_H$ is the value of the high beta wave (18-30 Hz)[cite: 128, 135].
 \end{itemize}
 
-Finally, the results from SingLEM and the PSS equation~\cite{eq:pss_prediction} are checked for normality, and evaulated using either a One-Way ANOVA (for normal and equally distributed data) or a Kruskal-Wallis test (for non-parametric data).
+Finally, the results from SingLEM and the PSS equation are checked for normality, and evaulated using either a One-Way ANOVA (for normal and equally distributed data) or a Kruskal-Wallis test (for non-parametric data).
 
 \section{Analysis}
-Upon fine-tuning SingLEM, we got a validation accuracy of 73.7\% after six epochs\cite{jtof-devEE-499-2026}. This top accuracy was reached after significant difficulties with over- and under-fitting to the dataset. While this result does not appear to suffer from either of those issues, it is not clear that this is a good fine-tune.
+Upon fine-tuning SingLEM, we got a validation accuracy of 73.7\% after six epochs\cite{jtof-dev-EE-499-2026}. This top accuracy was reached after significant difficulties with over- and under-fitting to the dataset. While this result does not appear to suffer from either of those issues, it is not clear that this is a good fine-tune.
 
 
 We evaluated the statistical significance of four paramters across two tasks: performance throughput (keys or words per second), performance accuracy (how mnay mistakes were made), EEG calculated anxiety using PSS, and SingLEM predicted anxiety~\cite{jtof-dev-EE-499-2026}. To test for normality and variance, all parameters first passed through a Shaprio-Wilk test and a Levene's test. Of these eight, all used One-Way ANOVA except for performance throughput for both the Stroop and Typing tests.
 
 For the Stroop task, every parameter returned the null result, with p-values well above the 0.05 threshold. For the Typing task, accuracy, PSS, and predicted anxiety were not statistically significant, but performance throughput did have a significant difference (p=0.0379) under the Kruskal-Wallis test. Aside from the average number of words per second, none of the measured performance or anxiety data contained a significant difference between the silent data and the white noise, lyrical, or lyric-less data.
 
-\begin{table*}[!t]
+\begin{figure*}[!p]
     \centering
-    \caption{Behavioral Performance Metrics by Task and Auditory Condition (Participant: Andy)}
+    \small % Makes all tables in this figure slightly smaller to save vertical space
+    
+    % --- TABLE 1 ---
+    \captionof{table}{Behavioral Performance Metrics by Task and Auditory Condition (Participant: Andy)}
     \label{tab:performance_metrics}
     \begin{tabular}{llccccc}
         \toprule
@@ -269,13 +273,11 @@ For the Stroop task, every parameter returned the null result, with p-values wel
         & Music      & 3 & 267.7 & 57.7 & 0.90 & 82.27 \\
         & MusicNL    & 3 & 268.7 & 50.0 & 0.90 & 84.31 \\
         \bottomrule
-        \multicolumn{7}{l}{\footnotesize \textit{Note:} "Inputs" represents keystrokes for Stroop and whole words for Typing.}
     \end{tabular}
-\end{table*}
+    \vspace{0.3cm} % Reduced spacing
 
-\begin{table*}[!t]
-    \centering
-    \caption{Statistical Analysis of Performance and EEG Metrics (Stroop Task)}
+    % --- TABLE 2 ---
+    \captionof{table}{Statistical Analysis of Performance and EEG Metrics (Stroop Task)}
     \label{tab:stats_stroop}
     \begin{tabular}{lccccc}
         \toprule
@@ -286,13 +288,11 @@ For the Stroop task, every parameter returned the null result, with p-values wel
         EEG Calculated PSS   & Pass & Equal   & One-Way ANOVA  & 0.4603 & No \\
         EEG Predicted Anxiety & Pass & Equal   & One-Way ANOVA  & 0.9643 & No \\
         \bottomrule
-        \multicolumn{6}{l}{\footnotesize \textit{Note:} Normality determined via Shapiro-Wilk ($\alpha=0.05$). Variance via Levene's test.}
     \end{tabular}
-\end{table*}
+    \vspace{0.3cm} % Reduced spacing
 
-\begin{table*}[!t]
-    \centering
-    \caption{Statistical Analysis of Performance and EEG Metrics (Typing Task)}
+    % --- TABLE 3 ---
+    \captionof{table}{Statistical Analysis of Performance and EEG Metrics (Typing Task)}
     \label{tab:stats_typing}
     \begin{tabular}{lccccc}
         \toprule
@@ -303,9 +303,18 @@ For the Stroop task, every parameter returned the null result, with p-values wel
         EEG Calculated PSS   & Pass & Equal   & One-Way ANOVA  & 0.1642 & No \\
         EEG Predicted Anxiety & Pass & Equal   & One-Way ANOVA  & 0.2914 & No \\
         \bottomrule
-        \multicolumn{6}{l}{\footnotesize \textit{Note:} Normality determined via Shapiro-Wilk ($\alpha=0.05$). Variance via Levene's test.}
     \end{tabular}
-\end{table*}
+
+    \vspace{0.5cm} % Minimal gap before image
+
+    % --- IMAGE (Now utilizing the saved space) ---
+    \begin{minipage}{0.8\textwidth} % Increased width from 0.48 to 0.8
+        \centering
+        \includegraphics[width=\linewidth]{figures/singlem_stroop_anxiety_over_time.png}
+        \caption{Anxiety over time during the Stroop Test.}
+        \label{fig:my_first_pic}
+    \end{minipage}
+\end{figure*}
 
 \section{Results and Conclusion}
 Unlike the papers cited examining the effect of white noise, we were not able to find a significant difference in anxiety level between auditory levels. Instead, the Stroop or Typing task appeared to override the environmental audio. The one paramter that did show a significant difference, the Typing task's throughput, may instead point towards the background audio being a motor pacer, speeding up or slowing down the speed of typing. Lastly, the anxiety levels calculated between the SingLEM fine-tune and the PSS equation were similar. This indicates that the SingLEM fine-tune was likely accurate despite the lower than hoped accuracy score of 73.7\%.
