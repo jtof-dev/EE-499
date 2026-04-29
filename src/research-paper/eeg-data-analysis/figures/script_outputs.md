@@ -213,35 +213,53 @@ audio condition had a measurable impact.
 # `EEG_band_analysis_and_significance.py`
 
 ```
-scanning 'data/level_2' for participant 'andy'...
+Scanning 'data/level_2' for participant 'andy'...
 
-aggregated anxiety levels
-test_task  condition  runs  avg_saeed_score
-   Stroop      Music     3            0.000
-   Stroop    MusicNL     3            0.000
-   Stroop     Silent     6            0.000
-   Stroop WhiteNoise     3            0.000
-   Typing      Music     3           -0.000
-   Typing    MusicNL     3            0.000
-   Typing     Silent     6            0.000
-   Typing WhiteNoise     3            0.000
+Aggregated Predicted PSS Levels
+test_task  condition  runs  avg_predicted_pss
+   Stroop      Music     3             -0.935
+   Stroop    MusicNL     3             -1.331
+   Stroop     Silent     6             -0.863
+   Stroop WhiteNoise     3             -1.293
+   Typing      Music     3             -1.799
+   Typing    MusicNL     3             -1.359
+   Typing     Silent     6             -0.376
+   Typing WhiteNoise     3             -1.025
 
-statistical analysis
+=============================================
+STATISTICAL ANALYSIS
+=============================================
 
-normality check (shapiro-wilk):
-   - music     : p = 0.3631 [pass]
-   - musicnl   : p = 0.6246 [pass]
-   - whitenoise: p = 0.2585 [pass]
-   - silent    : p = 0.1878 [pass]
+--- Analysis for Task: STROOP ---
+Normality check (Shapiro-Wilk):
+   - music     : p = 0.8081 [pass]
+   - whitenoise: p = 0.9032 [pass]
+   - silent    : p = 0.6256 [pass]
+   - musicnl   : p = 0.1194 [pass]
 
-variance check (levene's):
-   - all groups: p = 0.0382 [fail]
+Variance check (Levene's):
+   - all groups: p = 0.6433 [pass]
 
-assumptions violated. running non-parametric kruskal-wallis:
+Assumptions met. Running parametric One-Way ANOVA:
 
-kruskal-wallis results:
-statistic: 4.128
-p-value:   0.2480
+anova Results:
+Statistic: 0.926
+p-value:   0.4603
+Conclusion: No significant difference detected for the STROOP task.
 
-conclusion: no significant difference detected (variance may be random).
-```
+--- Analysis for Task: TYPING ---
+Normality check (Shapiro-Wilk):
+   - musicnl   : p = 0.7999 [pass]
+   - music     : p = 0.1073 [pass]
+   - silent    : p = 0.6970 [pass]
+   - whitenoise: p = 0.2278 [pass]
+
+Variance check (Levene's):
+   - all groups: p = 0.3843 [pass]
+
+Assumptions met. Running parametric One-Way ANOVA:
+
+anova Results:
+Statistic: 2.058
+p-value:   0.1642
+Conclusion: No significant difference detected for the TYPING task.```

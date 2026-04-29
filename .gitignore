@@ -11,10 +11,10 @@ src/homework-3/__pycache__
 src/homework-3/homework-3.pdf
 
 
-src/research-paper/old/*/*
-!src/research-paper/old/*/figures/
-!src/research-paper/old/*/*.tex
-!src/research-paper/old/*/*.bib
+src/research-paper/paper-sections/*/*
+!src/research-paper/paper-sections/*/figures/
+!src/research-paper/paper-sections/*/*.tex
+!src/research-paper/paper-sections/*/*.bib
 
 src/research-paper/latex/*
 !src/research-paper/latex/figures/
