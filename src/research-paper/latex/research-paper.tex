@@ -10,6 +10,7 @@
 \usepackage{cite}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{tabularx}
 \usepackage{geometry}
 
@@ -64,56 +65,53 @@ EEGs with multiple sensors have more potential methods of data analysis. Thanks 
 
 \section{Questions and Hypotheses}
 
-The above examined studies on axiety and EEG anxiety assessment provides a solid base to extrapolate how noise would effect anxiety while test-taking. White noise in the operating room showed no difference in anxiety level, while music decreased both anxiety and auditory processing\cite{shahrokhiEffectWhiteNoise2022, wayEffectNoiseAuditory2013}. In an operating room, auditory processing is critical, but in many other stressful situations, it is much less important. In a more controlled scenario, it may be more likely that the white noise would calm the participant~\cite{zhangSedativeEffectWhite2025}.
+The above examined studies on axiety and EEG anxiety assessment provides a solid base to extrapolate how noise would effect anxiety while test-taking. White noise in the operating room showed no difference in anxiety level, while music decreased both anxiety and auditory processing\cite{shahrokhiEffectWhiteNoise2022,wayEffectNoiseAuditory2013}. In an operating room, auditory processing is critical, but in many other stressful situations, it is much less important. In a more controlled scenario, it may be more likely that the white noise would calm the participant~\cite{zhangSedativeEffectWhite2025}.
 
-While performing controlled tasks, what is the effect of white noise on task anxiety? It is likely that listening to white noise shows a statistically significant reduction in anxiety and no change in performance~\cite{zhangSedativeEffectWhite2025}. Though unexpected, anxiety levels may remain the same or rise while listening to white noise and compared to the task done in silence\cite{shahrokhiEffectWhiteNoise2022, marzollaImpactNoiseExposure2024}. Through collecting data using a commercial EEG, we will test the effect of white noise on anxiety-inducing tasks. Additionally, we will repeat the same tasks while listening to music with and without lyrics, and expect no change in performance but a decrease in anxiety~\cite{kissEffectPreferredBackground2021}.
+While performing controlled tasks, what is the effect of white noise on task anxiety? It is likely that listening to white noise shows a statistically significant reduction in anxiety and no change in performance~\cite{zhangSedativeEffectWhite2025}. Though unexpected, anxiety levels may remain the same or rise while listening to white noise and compared to the task done in silence\cite{shahrokhiEffectWhiteNoise2022,marzollaImpactNoiseExposure2024}. Through collecting data using a commercial EEG, we will test the effect of white noise on anxiety-inducing tasks. Additionally, we will repeat the same tasks while listening to music with and without lyrics, and expect no change in performance but a decrease in anxiety~\cite{kissEffectPreferredBackground2021}.
 
 Using a wearable EEG that measures stress, we will test these claims by repeatedly taking tests under various auditory conditions. EEGs have already proven to be accurate in tracking stress, and allow for continuous monitoring throughout test-taking~\cite{sukhbaatarSingLEMSingleChannelLarge2025}. With an EEG, we can track how anxiety levels shift throughout the test-taking process, allowing for insights like when axiety is at its highest, and how much various kinds of noise dampen that peak. To interpret this data, we will fine-tune SingLEM on our collected data, and perform brainwave band analysis, focusing on the Beta band~\cite{sukhbaatarSingLEMSingleChannelLarge2025, muhammadumarsaeedQuantificationHumanStress2017}.
 
 \section{Device Design}
-
-% =============
-% device design
-% =============
 
 To realize a wearable anxiety monitor, a NeuroSky MindWave Mobile 2 is being used. This headset was released in 2018, and included first-party software support on Windows, Android, and iOS~\cite{neuroskyNeuroSkyMindWaveMobile2018}. To track data, we will use NeuroSky's eegID Android app, which saves all collected data as a CSV~\cite{isomerprogrammingllcEegID2015}. While there are other alternatives, including connecting the headset directly to a computer using a python script or program, the mobile app is sufficient, with all data analysis happening afterwards. Additionally, because eegID has not recieved updates since late 2015, it will be easier to pair it to an older phone - in this case, a Motorola Moto X4, which was released in 2017.
 
 \begin{figure}[htbp]
     \centering
     \resizebox{\columnwidth}{!}{%
+    \definecolor{magmapurple}{HTML}{3B0F70}
+    \definecolor{magmapink}{HTML}{B73779}
+    \definecolor{magmaorange}{HTML}{FC8961}
+    
     \begin{tikzpicture}[
         node distance=2.5cm,
         auto,
         block/.style={
             rectangle,
-            draw,
+            draw=black,
             rounded corners=8pt,
             minimum width=2.4cm,
             minimum height=1.2cm,
             text centered,
             align=center
         },
+        headsetblock/.style={block, fill=magmapurple, text=white},
+        phoneblock/.style={block, fill=magmapink, text=white},
+        computerblock/.style={block, fill=magmaorange, text=black},
         line/.style={draw, -{Latex[length=2.5mm]}, thick}
     ]
-        % nodes
-        \node [block] (headset) {NeuroSky\\MindWave\\Mobile 2};
-        \node [block, right=of headset] (phone) {Motorola\\Moto X4};
-        \node [block, right=of phone] (computer) {Computer};
+        \node [headsetblock] (headset) {MindWave\\Mobile 2};
+        \node [phoneblock, right=of headset] (phone) {Moto X4};
+        \node [computerblock, right=of phone] (computer) {Computer};
 
-        % paths
-        \path [line] (headset) -- node[align=center, above] {Bluetooth} (phone);
+        \path [line] (headset) -- node[align=center, above, font=\small] {Bluetooth} (phone);
         
-        \path [line] (phone) -- node[align=center, above] {Wired Post\\Hoc sync} (computer);
+        \path [line] (phone) -- node[align=center, above, font=\small] {Wired Post\\Hoc sync} (computer);
         
     \end{tikzpicture}%
     }
     \caption{Hardware data flow and synchronization architecture.}
     \label{fig:data_flow}
 \end{figure}
-
-% =============
-%  methods plan
-% =============
 
 \section{Methods Plan}
 
@@ -123,31 +121,22 @@ The Stroop test traditionally is formatted as a list of words in various colors,
 
 Our Typing test is similar to most online typing games, with a feed of words to type as fast as possible. Like the Stroop test, this game will implement a correct word counter to increase anxiety during the test~\cite{yamadaExperimentalParadigmManipulate2025}.
 
-% \begin{table*}[t]
-%     \centering
-%     \caption{eegID Telemetry Fields and Correlated Brainwave States~\cite{neurosky2026eegid,neurohealth_2019}}
-%     \label{tab:eegid_brainwaves}
-%     \begin{tabularx}{\textwidth}{l l X}
-%         \hline
-%         \textbf{eegID Field} & \textbf{Frequency Range} & \textbf{Description and Meaning} \\
-%         \hline
-%         PoorSignal & N/A & A hardware metric indicating the quality of the sensor contact and signal integrity. \\
-%         EEG Raw Value & N/A & Unfiltered analog values captured directly from the EEG sensor. \\
-%         EEG Raw Value Volts & N/A & The raw EEG data scaled and converted into standard voltage units. \\
-%         Attention Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's focus, concentration, and directed mental effort. \\
-%         Meditation Level & N/A & A computed metric (ThinkGear algorithm) measuring the user's level of mental calmness and relaxation. \\
-%         Blink Strength & N/A & A metric that detects eye blinks and quantifies their relative physical intensity. \\
-%         Delta & 1--3 Hz & Associated with deep, dreamless sleep, trance, and the unconscious mind. Represents a decreased awareness of the physical world. \\
-%         Theta & 4--7 Hz & Linked to intuition, creativity, daydreaming, internal focus, and spiritual awareness. Reflects the state between wakefulness and sleep. \\
-%         Alpha Low & 8--9 Hz & Correlates to an inner-awareness of self, mind/body integration, and balance. \\
-%         Alpha High & 10--12 Hz & Associated with centering, healing, and bridging the conscious to the subconscious. Promotes mental resourcefulness and calmness. \\
-%         Beta Low & 13--17 Hz & Reflects a state of being relaxed yet focused, integrated, and actively thinking while remaining aware of surroundings. \\
-%         Beta High & 18--30 Hz & Indicates high alertness and mental activity (e.g., math, planning), and general activation of mind/body functions, but can also reflect agitation. \\
-%         Gamma Low & 31--40 Hz & Consolidates information from different areas of the brain for simultaneous processing. Associated with alertness, good memory, or potential agitation. \\
-%         Gamma Mid & 41--50 Hz & Functions similarly to Gamma Low in consolidating rapid, simultaneous processing across brain regions; also indicates high alertness or agitation. \\
-%         \hline
-%     \end{tabularx}
-% \end{table*}
+\begin{table*}[t]
+    \centering
+    \caption{eegID Telemetry Fields and Correlated Brainwave States~\cite{isomerprogrammingllcEegID2015,neuroskyNeuroSkyMindWaveMobile2018}}
+    \label{tab:eegid_brainwaves}
+    \begin{tabularx}{\textwidth}{l l X}
+        \hline
+        \textbf{eegID Field} & \textbf{Frequency Range} & \textbf{Description and Meaning} \\
+        \hline
+        PoorSignal & N/A & A hardware metric indicating the quality of the sensor contact and signal integrity. \\
+        EEG Raw Value & N/A & Unfiltered analog values captured directly from the EEG sensor. \\
+        EEG Raw Value Volts & N/A & The raw EEG data scaled and converted into standard voltage units. \\
+        Beta Low & 13--17 Hz & Reflects a state of being relaxed yet focused, integrated, and actively thinking while remaining aware of surroundings. \\
+        Beta High & 18--30 Hz & Indicates high alertness and mental activity (e.g., math, planning), and general activation of mind/body functions, but can also reflect agitation. \\
+        \hline
+    \end{tabularx}
+\end{table*}
 
 \subsection{Collecting Data}
 
@@ -155,54 +144,52 @@ We will use a NeuroSky Mindwave Mobile 2 to collect data and follow the included
 
 \subsection{Methods of Measuring Anxiety}
 
-\begin{figure}[!t]
+% ==========================================
+% FIGURE 1: SYSTEM ARCHITECTURE FLOWCHART
+% ==========================================
+\begin{figure}[htbp]
     \centering
+    % Define exact hex colors from the Seaborn 'magma' palette
+    \definecolor{magmapurple}{HTML}{3B0F70}
+    \definecolor{magmapink}{HTML}{B73779}
+    \definecolor{magmaorange}{HTML}{FC8961}
+    
+    % Resize the entire diagram to fit perfectly within one column
+    \resizebox{\columnwidth}{!}{%
     \begin{tikzpicture}[
-        node distance=0.8cm and 0.6cm, % Tighter spacing for standard column width
+        node distance=0.8cm and 1.8cm, 
         auto,
-        % styles
-        startstop/.style={rectangle, rounded corners, minimum width=2.2cm, minimum height=0.8cm, text centered, draw=black, fill=red!20, font=\footnotesize, align=center},
-        process/.style={rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, text width=2.8cm, draw=black, fill=orange!20, font=\footnotesize, align=center},
-        % decision/.style={diamond, aspect=1.8, minimum width=2cm, minimum height=0.8cm, text centered, text width=1.8cm, draw=black, fill=green!20, font=\tiny, align=center},
-        decision/.style={diamond, aspect=1.8, minimum width=2.5cm, minimum height=0.8cm, text centered, text width=2.2cm, draw=black, fill=green!20, font=\footnotesize, align=center},
+        startstop/.style={rectangle, rounded corners, minimum width=2.2cm, minimum height=0.8cm, text centered, draw=black, fill=magmapurple, text=white, font=\footnotesize, align=center},
+        process/.style={rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, text width=2.8cm, draw=black, fill=magmapink, text=white, font=\footnotesize, align=center},
+        decision/.style={diamond, aspect=1.8, minimum width=2.5cm, minimum height=0.8cm, text centered, text width=2.2cm, draw=black, fill=magmaorange, text=black, font=\footnotesize, align=center},
         arrow/.style={thick,->,>=stealth} ]
 
-    % --- COLUMN 1: Preprocessing ---
+    % --- COLUMN 1: Preprocessing & Epochs ---
     \node (start) [startstop] {Raw EEG\\Data (512Hz)};
     \node (pro1)  [process, below=of start] {Bandpass (0.5--50Hz)\\ \& Notch (60Hz)};
     \node (pro2)  [process, below=of pro1] {Downsample\\to 128Hz};
     \node (pro3)  [process, below=of pro2] {Scale ($x 10^4$)};
-
-    % --- COLUMN 2: Windowing & Training ---
-    % Shift to the right to start the second column
-    \node (pro4)  [process, right=of pro3, xshift=0.3cm] {Generate 5s Rolling\\ Windows (1s step)};
+    \node (pro4)  [process, below=of pro3] {Generate 5s Rolling\\ Windows (1s step)};
     \node (dec1)  [decision, below=of pro4] {poorSignal $> 45$?};
-    
-    % Back to Column 1 space (tucked under pro3) for the discard node
-    \node (pro5)  [process, left=of dec1, xshift=-0.3cm] {Discard Epoch\\(Artifact Rejection)};
-    
-    \node (pro6)  [process, below=of dec1] {Chronological Split\\(80\% Train / 20\% Val)};
+
+    % --- COLUMN 2: Training Pipeline ---
+    \node (pro6)  [process, right=of start] {Chronological Split\\(80\% Train / 20\% Val)};
     \node (pro7)  [process, below=of pro6] {Initialize SingLEM\\ Backbone Weights};
     \node (pro8)  [process, below=of pro7] {Differential Training:\\ Unfreeze Backbone Tensors\\Backbone LR: $1e^{-5}$\\ Head LR: $1e^{-3}$};
     \node (dec2)  [decision, below=of pro8] {Validation Loss\\ Minimum?};
     \node (stop)  [startstop, below=of dec2] {Final Weights};
 
     % --- CONNECTIONS ---
-    % Col 1 vertical flow
     \draw [arrow] (start) -- (pro1);
     \draw [arrow] (pro1) -- (pro2);
     \draw [arrow] (pro2) -- (pro3);
+    \draw [arrow] (pro3) -- (pro4);
+    \draw [arrow] (pro4) -- (dec1);
 
     % Transition from Col 1 to Col 2
-    \draw [arrow] (pro3) -- (pro4);
+    \draw [arrow] (dec1.east) -- node[anchor=south, font=\tiny] {No} ++(0.8,0) |- (pro6.west);
 
     % Col 2 flow
-    \draw [arrow] (pro4) -- (dec1);
-    
-    % Decision 1 (Yes goes left, No goes down)
-    \draw [arrow] (dec1) -- node[anchor=south, font=\tiny] {Yes} (pro5);
-    \draw [arrow] (dec1) -- node[anchor=west, font=\tiny] {No} (pro6);
-
     \draw [arrow] (pro6) -- (pro7);
     \draw [arrow] (pro7) -- (pro8);
     \draw [arrow] (pro8) -- (dec2);
@@ -211,17 +198,13 @@ We will use a NeuroSky Mindwave Mobile 2 to collect data and follow the included
     % Feedback loop for dec 2
     \draw [arrow] (dec2.west) -- node[anchor=south, font=\tiny] {No} ++(-0.6,0) |- (pro8.west);
 
-    \end{tikzpicture}
+    \end{tikzpicture}%
+    }
     \caption{System Architecture: EEG preprocessing, artifact rejection, and SingLEM fine-tuning with automated Early Stopping.}
     \label{fig:methodology_flow}
 \end{figure}
 
-
-% examine in detail the specifics of SingLEM and simplier classifiers for measuring anxiety
-
-% rewrite to make the tone a bit more theoretical, and add more info on the different methods of data analysis
-
-SingLEM is fine-tuned using the silent level 1 and level 2 data. We are basing our fine-tune on the example included in SingLEM's GitHub~\cite{SingLEM}. First, our data is passed through multiple filters to eliminate external electrical noise, data points with head connection, and downsampled to match how SingLEM was trained~\cite{jtof-devEE-499-2026}. The first 60 seconds of all datasets are removed to account for any initial movement, and to wait until the anxiety from the Level 2 tasks have begun to build up. Lastly, the model is partially unfrozen to compensate for the small size of the datapool, with a learning rate of (\(1e^-5)\).
+SingLEM is fine-tuned using the silent level 1 and level 2 data. We are basing our fine-tune on the example included in SingLEM's GitHub~\cite{SingLEM}. First, our data is passed through multiple filters to eliminate external electrical noise, data points with head connection, and downsampled to match how SingLEM was trained~\cite{jtof-dev-EE-499-2026}. The first 60 seconds of all datasets are removed to account for any initial movement, and to wait until the anxiety from the Level 2 tasks have begun to build up. Lastly, the model is partially unfrozen to compensate for the small size of the datapool, with a learning rate of (\(1e^-5)\).
 
 This format fine-tunes SingLEM into a binary classifier, which can then be used to classify our data under various auditory conditions and compare to the silent data. To perform further data analysis, the Expected Value will give detailed information on how close to Level 1 or 2 the participant is over time. Calculating the Expected Value avoids the sometimes inaccurate outputs from only using a softmax.
 
@@ -239,59 +222,97 @@ Where:
     \item $V_2$ is the numerical value assigned to Level 2 ($V_2 = 2.0$).
 \end{itemize}
 
-Additionally, we will implement the 
+Additionally, we are implementing the Beta band classification from Saeed's paper (PSS)~\cite{muhammadumarsaeedQuantificationHumanStress2017}. We can skip Saeed's preprocessing steps, since our EEG already outputs low and high Beta waves. In the paper, they related Beta waves to a Percieved Stress Score (PSS); in our analsis we will compare the result to our labelled data.
 
-% \begin{figure}[!t]
-%     \centering
-%     \includegraphics[width=\linewidth]{figures/neural_load_analysis.png}
-%     \caption{Overall and Real-Time Anxiety Level~\cite{jtof-dev_EE-499_2026}.}
-%     \label{fig:graph1}
-% \end{figure}
-%     \vfill
-%
-%     \begin{minipage}[c][0.48\textheight][c]{\linewidth}
-%         \centering
-%         \includegraphics[width=\textwidth]{figures/neural_load_analysis.png}
-%         \caption{Overall and Real-Time Anxiety Level~\cite{jtof-dev_EE-499_2026}.}
-%         \label{fig:graph1}
-%     \end{minipage}
-% \end{figure*}
+\begin{equation}
+    \label{eq:pss_prediction}
+    PSS = b_0 + b_1\beta_L + b_2\beta_H
+\end{equation}
 
-% ========
-% ANALYSIS
-% ========
+Where:
+\begin{itemize}
+    \item $PSS$ is the predicted Perceived Stress Scale score[cite: 135].
+    \item $b_0$ is the intercept ($b_0 = -2.35$)[cite: 135, 160].
+    \item $b_1$ is the regression weight for the low beta wave ($b_1 = 2.29 \times 10^{-6}$)[cite: 135, 160].
+    \item $\beta_L$ is the value of the low beta wave (13-17 Hz)[cite: 128, 135].
+    \item $b_2$ is the regression weight for the high beta wave ($b_2 = 1.20 \times 10^{-7}$)[cite: 135, 160].
+    \item $\beta_H$ is the value of the high beta wave (18-30 Hz)[cite: 128, 135].
+\end{itemize}
+
+Finally, the results from SingLEM and the PSS equation~\cite{eq:pss_prediction} are checked for normality, and evaulated using either a One-Way ANOVA (for normal and equally distributed data) or a Kruskal-Wallis test (for non-parametric data).
 
 \section{Analysis}
+Upon fine-tuning SingLEM, we got a validation accuracy of 73.7\% after six epochs\cite{jtof-devEE-499-2026}. This top accuracy was reached after significant difficulties with over- and under-fitting to the dataset. While this result does not appear to suffer from either of those issues, it is not clear that this is a good fine-tune.
 
-% focus on the most important concrete results - did sounds increase or decrease stress and performance, and give some graphs on that
 
-Comparing the three auditory conditions shows an increase in total average correct answers and average keys pressed, with silence being the lowest and music the highest~\ref{tab:participant_andy_metrics_total}. However, the overall accuracy decreased during the music tests, with silence being the most accurate. It is possible that the increased anxiety level in the silent and white noise conditions cause enough second-guessing and slowdowns to prevent additional errors that music did not~\ref{fig:graph1}.
+We evaluated the statistical significance of four paramters across two tasks: performance throughput (keys or words per second), performance accuracy (how mnay mistakes were made), EEG calculated anxiety using PSS, and SingLEM predicted anxiety~\cite{jtof-dev-EE-499-2026}. To test for normality and variance, all parameters first passed through a Shaprio-Wilk test and a Levene's test. Of these eight, all used One-Way ANOVA except for performance throughput for both the Stroop and Typing tests.
 
-\begin{table}[htbp]
+For the Stroop task, every parameter returned the null result, with p-values well above the 0.05 threshold. For the Typing task, accuracy, PSS, and predicted anxiety were not statistically significant, but performance throughput did have a significant difference (p=0.0379) under the Kruskal-Wallis test. Aside from the average number of words per second, none of the measured performance or anxiety data contained a significant difference between the silent data and the white noise, lyrical, or lyric-less data.
+
+\begin{table*}[!t]
     \centering
-    \caption{Aggregated Stroop test metrics for Andy. Data reflects total averages per run across different auditory conditions~\cite{jtof-dev_EE-499_2026}.}
-    \label{tab:participant_andy_metrics_total}
-    \resizebox{\linewidth}{!}{%
-        \begin{tabular}{l c c c c c c}
-            \toprule
-            \textbf{Condition} & \textbf{Runs} & \textbf{Avg Keys} & \textbf{Avg Correct} & \textbf{Avg Errors} & \textbf{Keys/Sec} & \textbf{Accuracy (\%)} \\
-            \midrule
-            Silent     & 3 & 399.7 & 376.7 & 23.0 & 1.34 & 94.25 \\
-            WhiteNoise & 2 & 432.5 & 403.0 & 29.5 & 1.45 & 93.18 \\
-            Music      & 2 & 491.0 & 448.0 & 43.0 & 1.65 & 91.24 \\
-            \bottomrule
-        \end{tabular}%
-    }
-\end{table}
+    \caption{Behavioral Performance Metrics by Task and Auditory Condition (Participant: Andy)}
+    \label{tab:performance_metrics}
+    \begin{tabular}{llccccc}
+        \toprule
+        \textbf{Task} & \textbf{Condition} & \textbf{Runs} & \textbf{Avg Inputs} & \textbf{Avg Errors} & \textbf{Throughput (/sec)} & \textbf{Accuracy (\%)} \\
+        \midrule
+        \multirow{4}{*}{Stroop} 
+        & Silent     & 6 & 458.5 & 26.8 & 1.54 & 94.15 \\
+        & WhiteNoise & 3 & 453.7 & 25.0 & 1.52 & 94.49 \\
+        & Music      & 3 & 480.3 & 38.3 & 1.61 & 92.02 \\
+        & MusicNL    & 3 & 531.7 & 31.0 & 1.78 & 94.17 \\
+        \midrule
+        \multirow{4}{*}{Typing} 
+        & Silent     & 6 & 241.5 & 54.5 & 0.81 & 81.59 \\
+        & WhiteNoise & 3 & 266.3 & 49.7 & 0.89 & 84.28 \\
+        & Music      & 3 & 267.7 & 57.7 & 0.90 & 82.27 \\
+        & MusicNL    & 3 & 268.7 & 50.0 & 0.90 & 84.31 \\
+        \bottomrule
+        \multicolumn{7}{l}{\footnotesize \textit{Note:} "Inputs" represents keystrokes for Stroop and whole words for Typing.}
+    \end{tabular}
+\end{table*}
 
-% ====================
-% RESULTS & CONCLUSION
-% ====================
+\begin{table*}[!t]
+    \centering
+    \caption{Statistical Analysis of Performance and EEG Metrics (Stroop Task)}
+    \label{tab:stats_stroop}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Metric Assessed} & \textbf{Normality} & \textbf{Variance} & \textbf{Statistical Test} & \textbf{$p$-value} & \textbf{Significant?} \\
+        \midrule
+        Performance Accuracy & Pass & Equal   & One-Way ANOVA  & 0.6535 & No \\
+        Performance Throughput & Pass & Unequal & Kruskal-Wallis & 0.1149 & No \\
+        EEG Calculated PSS   & Pass & Equal   & One-Way ANOVA  & 0.4603 & No \\
+        EEG Predicted Anxiety & Pass & Equal   & One-Way ANOVA  & 0.9643 & No \\
+        \bottomrule
+        \multicolumn{6}{l}{\footnotesize \textit{Note:} Normality determined via Shapiro-Wilk ($\alpha=0.05$). Variance via Levene's test.}
+    \end{tabular}
+\end{table*}
+
+\begin{table*}[!t]
+    \centering
+    \caption{Statistical Analysis of Performance and EEG Metrics (Typing Task)}
+    \label{tab:stats_typing}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Metric Assessed} & \textbf{Normality} & \textbf{Variance} & \textbf{Statistical Test} & \textbf{$p$-value} & \textbf{Significant?} \\
+        \midrule
+        Performance Accuracy & Pass & Equal   & One-Way ANOVA  & 0.0781 & No \\
+        Performance Throughput & Pass & Unequal & Kruskal-Wallis & \textbf{0.0379} & \textbf{Yes} \\
+        EEG Calculated PSS   & Pass & Equal   & One-Way ANOVA  & 0.1642 & No \\
+        EEG Predicted Anxiety & Pass & Equal   & One-Way ANOVA  & 0.2914 & No \\
+        \bottomrule
+        \multicolumn{6}{l}{\footnotesize \textit{Note:} Normality determined via Shapiro-Wilk ($\alpha=0.05$). Variance via Levene's test.}
+    \end{tabular}
+\end{table*}
 
 \section{Results and Conclusion}
+Unlike the papers cited examining the effect of white noise, we were not able to find a significant difference in anxiety level between auditory levels. Instead, the Stroop or Typing task appeared to override the environmental audio. The one paramter that did show a significant difference, the Typing task's throughput, may instead point towards the background audio being a motor pacer, speeding up or slowing down the speed of typing. Lastly, the anxiety levels calculated between the SingLEM fine-tune and the PSS equation were similar. This indicates that the SingLEM fine-tune was likely accurate despite the lower than hoped accuracy score of 73.7\%.
 
-% compare my results to the papers I have cited in the paper and discuss whether or not those results are actually significant in any way
-% then conclude
+Our results not lining up with our initial hypothesis, and the previous papers examing the effect of white noise, is likely due to flaws in our methodology. While the Stroop and Typing tasks are good measures of anxiety under cognitive load, the amount of data required to properly fine-tune may have eliminated the anxiety-inducing elements of the tasks. Additionally, the readings were taking over multiple sessions, meaning that the headset was taken on and off multiple times, resulting in small differences in sensor placement on the forehead. Theoretically, SingLEM should be pre-trained thoroughly enough to ignore these inconsistencies, but it likely degraded the quality of our data.
+
+Going forward, the data collection phase should shift away from gathering 15-60 minutes of data on each condition to gathering less data on more tasks. The main difficulty with this approach would be designing tasks without too much physical movement, which could introduce too much noise to give meaningful results.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

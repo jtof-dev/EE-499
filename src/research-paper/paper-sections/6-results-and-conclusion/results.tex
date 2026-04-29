@@ -1,0 +1,28 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+\begin{document}
+
+\title{Results and Discussion}
+
+\author{Andy Babcock \\
+    \textit{Steve Sanghi College of Engineering, Northern Arizona University} \\
+    Flagstaff, AZ, USA \\
+    aab726@nau.edu
+}
+
+\maketitle
+
+
+\section{Results and Conclusion}
+Unlike the papers cited examining the effect of white noise, we were not able to find a significant difference in anxiety level between auditory levels. Instead, the Stroop or Typing task appeared to override the environmental audio. The one paramter that did show a significant difference, the Typing task's throughput, may instead point towards the background audio being a motor pacer, speeding up or slowing down the speed of typing. Lastly, the anxiety levels calculated between the SingLEM fine-tune and the PSS equation were similar. This indicates that the SingLEM fine-tune was likely accurate despite the lower than hoped accuracy score of 73.7\%.
+
+Our results not lining up with our initial hypothesis, and the previous papers examing the effect of white noise, is likely due to flaws in our methodology. While the Stroop and Typing tasks are good measures of anxiety under cognitive load, the amount of data required to properly fine-tune may have eliminated the anxiety-inducing elements of the tasks. Additionally, the readings were taking over multiple sessions, meaning that the headset was taken on and off multiple times, resulting in small differences in sensor placement on the forehead. Theoretically, SingLEM should be pre-trained thoroughly enough to ignore these inconsistencies, but it likely degraded the quality of our data.
+
+Going forward, the data collection phase should shift away from gathering 15-60 minutes of data on each condition to gathering less data on more tasks. The main difficulty with this approach would be designing tasks without too much physical movement, which could introduce too much noise to give meaningful results.
+
+\end{document}
